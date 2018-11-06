@@ -1,2 +1,4 @@
 secret_keys.txt
+node_modules/
+.idea/
 *~
