@@ -21,7 +21,6 @@ fs.readFile('secret_keys.txt', 'utf8', function (err, contents) {
     contents = contents.split('\n');
     client_id = contents[0];
     client_secret = contents[1];
-    console.log(contents)
 });
 
 
@@ -113,14 +112,29 @@ app.get('/callback', function(req, res) {
           console.log(body);
         });
 
+        var type = 'tracks';
         var user_data_options = {
-            url: 'https://api.spotify.com/v1/me/top/artists',
+            url: 'https://api.spotify.com/v1/me/top/' + type,
             headers: { 'Authorization': 'Bearer ' + access_token },
-            qs: { limit: 50 }
+            qs: { limit: 50 },
+            json: true
         };
 
         request.get(user_data_options, function(error, response, body) {
-            console.log(body);
+            for (var item of body.items) {
+
+              if (type === 'tracks') {
+                  var artists = [];
+                  for (var i = 0; i < item.artists.length; i++) {
+                      artists.push(item.artists[i].name);
+                  }
+                  console.log(artists.join(', '));
+              }
+
+              console.log(item.name);
+              console.log(item.popularity);
+              console.log();
+            }
         });
 
 
