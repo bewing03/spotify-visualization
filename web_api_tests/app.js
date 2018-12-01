@@ -41,6 +41,10 @@ var generateRandomString = function(length) {
   return text;
 };
 
+// function sleep(millis) {
+//     return new Promise(resolve => setTimeout(resolve, millis));
+// }
+
 var stateKey = 'spotify_auth_state';
 
 var app = express();
@@ -109,33 +113,51 @@ app.get('/callback', function(req, res) {
 
         // use the access token to access the Spotify Web API
         request.get(options, function(error, response, body) {
-          console.log(body);
+          // console.log(body);
         });
 
         var type = 'tracks';
         var user_data_options = {
             url: 'https://api.spotify.com/v1/me/top/' + type,
             headers: { 'Authorization': 'Bearer ' + access_token },
-            qs: { limit: 50 },
+            qs: { limit: 50, offset: 0},
             json: true
         };
 
-        request.get(user_data_options, function(error, response, body) {
-            for (var item of body.items) {
+        function test_this () {
+            request.get(user_data_options, function (error, response, body) {
+                console.log(response.statusCode);
+                var test_num = 0;
+                if (response.statusCode === 429) {
+                    console.log(response.headers['retry-after']);
+                    test_num = Number(response.headers['retry-after']);
+                    // sleep(response.headers['retry-after']); // need to work on sleep func
+                }
+                // if (user_data_options.qs.offset >= 500) {
+                //     return;
+                // }
+                user_data_options.qs.offset += 50;
+                setTimeout(test_this, 1000 * test_num);
 
-              if (type === 'tracks') {
-                  var artists = [];
-                  for (var i = 0; i < item.artists.length; i++) {
-                      artists.push(item.artists[i].name);
-                  }
-                  console.log(artists.join(', '));
-              }
+                // console.log(response);
 
-              console.log(item.name);
-              console.log(item.popularity);
-              console.log();
-            }
-        });
+                // for (var item of body.items) {
+                //
+                //   if (type === 'tracks') {
+                //       var artists = [];
+                //       for (var i = 0; i < item.artists.length; i++) {
+                //           artists.push(item.artists[i].name);
+                //       }
+                //       console.log(artists.join(', '));
+                //   }
+                //
+                //   console.log(item.name);
+                //   console.log(item.popularity);
+                //   console.log();
+                // }
+            });
+        }
+        test_this();
 
 
         // we can also pass the token to the browser to make requests from there
