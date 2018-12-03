@@ -28,7 +28,7 @@
     {
       "time": "2018-12-03T17:45:01.564Z",
       "artist": "7HkdQ0gt53LP4zmHsL0nap",
-      "track": "6CTWathupIiDs7U4InHnDA",
+      "track": "6CTWathupIiDs7U4InHnDA"
     },
     {
       "time": "2018-12-03T17:41:27.981Z",
@@ -126,7 +126,7 @@
       {
         "source": "0EmeFodog0BfCgMzAIvKQp",
         "target": "6t1gpxYbY8OlLA7D2RiikQ"
-      },
+      }
     ]
   },
   "tracks": {
@@ -139,6 +139,6 @@
     "5sKvgmG84C0bIMWeS2SRPr": {"name": "In My Feelings", "valence": ".62"},
     "1G9G7WwrXka3Z1r7aIDjI7": {"name": "Hey Ya", "valence": ".35"},
     "6t1gpxYbY8OlLA7D2RiikQ": {"name": "Loud", "valence": "47"},
-    "0hCNtLu0JehylgoiP8L4Gh": {"name": "Swalla", "valence": ".89"},
+    "0hCNtLu0JehylgoiP8L4Gh": {"name": "Swalla", "valence": ".89"}
   }
 }
