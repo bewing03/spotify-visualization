@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<script lang="javascript" src="js/jquery-3.1.0.min.js"></script>
+	<script lang="javascript" src="js/d3.min.js"></script>
+	<style>
+		html, body {
+			padding: 0;
+			margin: 0;
+		}
+	</style>
+</head>
+<body>
+
+	<script>
+		var dimension = 500;
+
+		var svg = d3.select('body').append('svg')
+			.attr('width', dimension)
+			.attr('height', dimension)
+			.style('background-color', 'black');
+
+		// YOUR CODE SHOULD START HERE
+		/*
+		 * Name: Ben Ewing
+		 * Word: Fleeting
+		 */
+
+	  var clicked = false;
+	  var clicks = 0;
+
+		sunsetColors =  ["#F7DE55", "#F07E07", "#B34D25", "#40284A", "#971D78", "#BC177D", "#fd5e53"]
+		sunriseColors = ["#7EC0EE", "#00BFFF", "#87ceeb"]
+
+		var defs = svg.append("defs");
+
+		var gradient = defs.append("linearGradient")
+		   .attr("id", "svgGradient")
+		   .attr("x1", "0%")
+		   .attr("x2", "0%")
+		   .attr("y1", "0%")
+		   .attr("y2", "100%");
+
+		gradient.append("stop")
+		   .attr('class', 'start')
+		   .attr("offset", "0%")
+		   .attr("stop-color", "red")
+		   .attr("stop-opacity", 1);
+
+		gradient.append("stop")
+		   .attr('class', 'end')
+		   .attr("offset", "100%")
+		   .attr("stop-color", "yellow")
+		   .attr("stop-opacity", 1);
+
+		var rectangle = svg.append("rect")
+        .attr("x", 0)
+				.attr("y", 0)
+        .attr("width", dimension)
+        .attr("height", dimension)
+				.attr("fill", "url(#svgGradient)")
+
+		var sunX = dimension / 2
+		var sunY = dimension / 3
+
+		var sun = svg.append("circle")
+			.attr("id", "")
+			.attr("cx", sunX)
+			.attr("cy", sunY)
+			.attr("r", dimension / 10)
+			.attr("fill", "yellow");
+
+		var hill1X = dimension / 100
+		var hill1Y = dimension - (dimension / 50)
+
+		var hill1 = svg.append("circle")
+			.attr("id", "hill9")
+			.attr("cx", hill1X)
+			.attr("cy", hill1Y)
+			.attr("r", dimension / 5)
+			.attr("fill", "#26A65A");
+
+		var hill2X = dimension
+		var hill2Y = dimension - (dimension / 34)
+
+		var hill2 = svg.append("circle")
+			.attr("id", "hill8")
+			.attr("cx", hill2X)
+			.attr("cy", hill2Y)
+			.attr("r", dimension / 5)
+			.attr("fill", "#26A65B");
+
+		var hill3X = dimension / 1.15
+		var hill3Y = dimension - (dimension / 34)
+
+		var hill3 = svg.append("circle")
+				.attr("id", "hill7")
+				.attr("cx", hill3X)
+				.attr("cy", hill3Y)
+				.attr("r", dimension / 5)
+				.attr("fill", "#26A65F");
+
+		var hill4X = dimension / 4
+		var hill4Y = dimension - (dimension / 34)
+
+		var hill4 = svg.append("circle")
+					.attr("id", "hill4")
+					.attr("cx", hill4X)
+					.attr("cy", hill4Y)
+					.attr("r", dimension / 5)
+					.attr("fill", "#26A65B");
+
+		var hill5X = dimension/ 2.5
+		var hill5Y = dimension - (dimension / 34)
+
+		var hill5 = svg.append("circle")
+				.attr("id", "hill5")
+				.attr("cx", hill5X)
+				.attr("cy", hill5Y)
+				.attr("r", dimension / 5)
+				.attr("fill", "#26A65B");
+
+		var hill6X = dimension/ 1.5
+		var hill6Y = dimension - (dimension / 25)
+
+		var hill6 = svg.append("circle")
+			.attr("id", "hill6")
+			.attr("cx", hill6X)
+			.attr("cy", hill6Y)
+			.attr("r", dimension / 5)
+			.attr("fill", "#26A65B");
+
+		var hill7X = dimension/100
+		var hill7Y = dimension
+
+		var hill7 = svg.append("circle")
+			.attr("id", "hil3")
+			.attr("cx", hill7X)
+			.attr("cy", hill7Y)
+			.attr("r", dimension / 5)
+			.attr("fill", "#87D37C");
+
+		var hill8X = dimension
+		var hill8Y = dimension
+
+		var hill8 = svg.append("circle")
+			.attr("id", "hill2")
+			.attr("cx", hill8X)
+			.attr("cy", hill8Y)
+			.attr("r", dimension / 5)
+			.attr("fill", "#87D37C");
+
+			var hill9X = dimension/3
+			var hill9Y = dimension
+
+		var hill9 = svg.append("circle")
+				.attr("id", "hill1")
+				.attr("cx", hill9X)
+				.attr("cy", hill9Y)
+				.attr("r", dimension / 5)
+				.attr("fill", "#87D37C");
+
+		var hill10X = dimension/1.5
+		var hill10Y = dimension
+
+		var hill10 = svg.append("circle")
+			.attr("id", "hill10")
+			.attr("cx", hill10X)
+			.attr("cy", hill10Y)
+			.attr("r", dimension / 5)
+			.attr("fill", "#87D37C");
+
+		var moonX = dimension/3
+		var moonY = -(dimension / 17)
+
+			var moon = svg.append("circle")
+				.attr("id", "moon")
+				.attr("cx", moonX)
+				.attr("cy", moonY)
+				.attr("r", dimension / 17)
+				.attr("fill", "yellow");
+
+		var moonShadowX = dimension/3 + dimension / 34
+		var moonShadowY = -(dimension / 17)
+
+			var moonShadow = svg.append("circle")
+				.attr("id", "moonShadow")
+				.attr("cx", moonShadowX)
+				.attr("cy", moonShadowY)
+				.attr("r", dimension / 17)
+				.attr("fill", "black");
+
+			svg.on("click", function() {
+
+				var length = 1750;
+				var moonTime = 1000;
+
+				if (!clicked) {
+					hill1.transition().attr("cy", dimension + (dimension / 5)).duration(length)
+					hill2.transition().attr("cy", dimension + (dimension / 5)).duration(length)
+					hill3.transition().attr("cy", dimension + (dimension / 5)).duration(length)
+					hill4.transition().attr("cy", dimension + (dimension / 5)).duration(length)
+					hill5.transition().attr("cy", dimension + (dimension / 5)).duration(length)
+					hill6.transition().attr("cy", dimension + (dimension / 5)).duration(length)
+					hill7.transition().attr("cy", dimension + (dimension / 5)).duration(length)
+					hill8.transition().attr("cy", dimension + (dimension / 5)).duration(length)
+					hill9.transition().attr("cy", dimension + (dimension / 5)).duration(length)
+					hill10.transition().attr("cy", dimension + (dimension / 5)).duration(length)
+					sun.transition().attr("cy",  dimension + (dimension / 10)).duration(length)
+					moon.transition().attr("cy",  dimension / 3).duration(1000).delay(500)
+					moonShadow.transition().attr("cy",  dimension / 3).duration(990).delay(500)
+
+					d3.selectAll("#svgGradient")
+					  .transition()
+					  .attr("y1", "0%")
+						.duration(length + 500)
+
+					d3.selectAll("stop")
+					  .transition()
+					  .attr("stop-color", "black")
+					  .attr("offset", "90%").duration(length)
+
+					if (clicks > 1) {
+						d3.selectAll("stop")
+								.transition()
+								.attr("stop-color", sunsetColors[Math.floor(Math.random() * 7)])
+								.attr("offset", "1000%").duration(1000)
+							d3.selectAll("stop")
+								.transition()
+								.attr("stop-color", "black")
+								.attr("offset", "90%").duration(1000).delay(1000)
+					}
+
+						clicked = true;
+				} else {
+
+					var delay = 200;
+					hill1.transition().attr("cy", hill1Y).duration(length).delay(delay)
+					hill2.transition().attr("cy", hill2Y).duration(length).delay(delay)
+					hill3.transition().attr("cy", hill3Y).duration(length).delay(delay)
+					hill4.transition().attr("cy", hill4Y).duration(length).delay(delay)
+					hill5.transition().attr("cy", hill5Y).duration(length).delay(delay)
+					hill6.transition().attr("cy", hill6Y).duration(length).delay(delay)
+					hill7.transition().attr("cy", hill7Y).duration(length).delay(delay)
+					hill8.transition().attr("cy", hill8Y).duration(length).delay(delay)
+					hill9.transition().attr("cy", hill9Y).duration(length).delay(delay)
+					hill10.transition().attr("cy", hill10Y).duration(length).delay(delay)
+					sun.transition().attr("cy",  sunY).duration(length).delay(delay)
+					moon.transition().attr("cy",  moonY).duration(1250)
+					moonShadow.transition().attr("cy",  moonShadowY).duration(1250)
+
+
+					d3.selectAll("#svgGradient")
+						.transition()
+						.attr("y1", "0%")
+						.duration(3000)
+
+					d3.selectAll("stop")
+						.transition()
+						.attr("stop-color", sunriseColors[Math.floor(Math.random() * 3)])
+						.attr("offset", "1000%").duration(length)
+
+					clicked = false;
+				}
+				clicks += 1;
+			})
+
+		console.log(d3.select("#hill1").attr("r"));
+
+		// YOUR CODE SHOULD END HERE
+
+	</script>
+</body>
+</html>
