@@ -24,38 +24,18 @@ var recents = [
 
 var artists = {
     ‘nodes’ : [
-        {‘id’: ‘artist_id’},
-        {‘id’: ‘artist_id’},
-        {‘id’: ‘artist_id’},
-        {‘id’: ‘artist_id’},
-        {‘id’: ‘artist_id’},
-        {‘id’: ‘artist_id’},
-        {‘id’: ‘artist_id’},
-        {‘id’: ‘artist_id’},
-        {‘id’: ‘artist_id’},
-        {‘id’: ‘artist_id’},
-        {‘id’: ‘artist_id’},
-        {‘id’: ‘artist_id’},
-        {‘id’: ‘artist_id’},
-        {‘id’: ‘artist_id’},
-        {‘id’: ‘artist_id’},
-        {‘id’: ‘artist_id’},
-        {‘id’: ‘artist_id’},
-        {‘id’: ‘artist_id’},
-        {‘id’: ‘artist_id’},
+        {‘id’: "0EmeFodog0BfCgMzAIvKQp"},
+        {‘id’: "0C0XlULifJtAgn6ZNCW2eu"},
+        {‘id’: "1S9WGrK7SZfXXQtHBYzDle"},
+        {‘id’: "2RDOrhPqAM4jzTRCEb19qX"},
+        {‘id’: "07ZhipyrvoyNoJejeyM0PQ"},
     ],
     ‘links’ : [
-        {‘source’: ‘artist_source_id’, ‘target’: ‘artist_target_id’},
-        {‘source’: ‘artist_source_id’, ‘target’: ‘artist_target_id’},
-        {‘source’: ‘artist_source_id’, ‘target’: ‘artist_target_id’},
-        {‘source’: ‘artist_source_id’, ‘target’: ‘artist_target_id’},
-        {‘source’: ‘artist_source_id’, ‘target’: ‘artist_target_id’},
-        {‘source’: ‘artist_source_id’, ‘target’: ‘artist_target_id’},
-        {‘source’: ‘artist_source_id’, ‘target’: ‘artist_target_id’},
-        {‘source’: ‘artist_source_id’, ‘target’: ‘artist_target_id’},
-        {‘source’: ‘artist_source_id’, ‘target’: ‘artist_target_id’},
-        {‘source’: ‘artist_source_id’, ‘target’: ‘artist_target_id’},
-        {‘source’: ‘artist_source_id’, ‘target’: ‘artist_target_id’},
+        {‘source’: "0EmeFodog0BfCgMzAIvKQp", ‘target’: "0C0XlULifJtAgn6ZNCW2eu"},
+        {‘source’: "0C0XlULifJtAgn6ZNCW2eu", ‘target’: "1S9WGrK7SZfXXQtHBYzDle"},
+        {‘source’: "1S9WGrK7SZfXXQtHBYzDle", ‘target’: "2RDOrhPqAM4jzTRCEb19qX"},
+        {‘source’: "2RDOrhPqAM4jzTRCEb19qX", ‘target’: "07ZhipyrvoyNoJejeyM0PQ"’},
+        {‘source’: "07ZhipyrvoyNoJejeyM0PQ", ‘target’: "1S9WGrK7SZfXXQtHBYzDle"},
     ]
 }
 
@@ -64,5 +44,5 @@ var tracks = {
     "0C0XlULifJtAgn6ZNCW2eu" : .32,
     "1S9WGrK7SZfXXQtHBYzDle" : .53,
     "2RDOrhPqAM4jzTRCEb19qX" : .12,
-    "07ZhipyrvoyNoJejeyM0PQ" : .71,\
+    "07ZhipyrvoyNoJejeyM0PQ" : .71,
 }
