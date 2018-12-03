@@ -168,8 +168,10 @@
                 return this.next_index <= index && this.i <= Date.parse("1970-01-01" + elem.time.slice(elem.time.indexOf('T'))); // i <= Date.parse(elem);
             }, {'i':i, 'next_index':next_index});
             if (next_index === -1) next_index = recents.length;
-            buckets.push({"time": (new Date(i)), "count": (next_index - last_index)});
+            buckets.push({"time": (new Date(i + Date.parse("1970-01-01T05:00:00.000Z"))), "count": (next_index - last_index)});
             last_index = next_index;
+
+            if (i === Date.parse("1970-01-02T00:00:00.000Z")) buckets[0] = buckets[buckets.length - 1];
         }
 
         // x.domain(d3.extent(data, function (d) {
