@@ -5,7 +5,7 @@
 <style>
 
     .area {
-        fill: url("#temperature-gradient");
+        fill: steelblue;/*url("#temperature-gradient");*/
         clip-path: url(#clip);
     }
 
@@ -43,8 +43,66 @@
         .force("center", d3.forceCenter(width / 2, height / 2));  //only a little redundant
 
 
-    d3.json("viz_tests/miserables.json", function (error, graph) {
+    var stored_data;
+    var parseDate = d3.timeParse("%b %Y");
+
+    var x = d3.scaleTime().range([0, width]),
+        x2 = d3.scaleTime().range([0, width]),
+        y = d3.scaleLinear().range([height, 0]),
+        y2 = d3.scaleLinear().range([height2, 0]);
+
+    var xAxis = d3.axisBottom(x),
+        xAxis2 = d3.axisBottom(x2),
+        yAxis = d3.axisLeft(y);
+
+    var brush = d3.brushX()
+        .extent([[0, 0], [width, height2]])
+        .on("brush end", brushed);
+
+    var zoom = d3.zoom()
+        .scaleExtent([1, Infinity])
+        .translateExtent([[0, 0], [width, height]])
+        .extent([[0, 0], [width, height]])
+        .on("zoom", zoomed);
+
+    var area = d3.area()
+        .curve(d3.curveMonotoneX)
+        .x(function (d) {
+            return x(d.time);
+        })
+        .y0(height)
+        .y1(function (d) {
+            return y(d.count);
+        });
+
+    var area2 = d3.area()
+        .curve(d3.curveMonotoneX)
+        .x(function (d) {
+            return x2(d.time);
+        })
+        .y0(height2)
+        .y1(function (d) {
+            return y2(d.count);
+        });
+
+    svg.append("defs").append("clipPath")
+        .attr("id", "clip")
+        .append("rect")
+        .attr("width", width)
+        .attr("height", height);
+
+    // var focus = svg.append("g")
+    //     .attr("class", "focus")
+    //     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    var context = svg.append("g")
+        .attr("class", "context")
+        .attr("transform", "translate(" + margin2.left + "," + margin2.top + ")");
+
+    d3.json("data.json", function (error, data) {
         if (error) throw error;
+
+        var graph = data.artists;
 
         var all_links = graph.links;
         simulation
@@ -94,6 +152,66 @@
             link.data(temp_links);
             simulation.alphaTarget(0.3).restart();
         }, 5000);  // removes half the links after 5 seconds and reworks forces
+
+
+        var recents = data.recents.sort;
+        stored_data = recents;
+        var buckets = [];
+        var last_index = 0;
+        var next_index;
+        for (var i = Date.parse("1970-01-01T00:05:00.000Z");
+             i <= Date.parse("1970-01-02T00:00:00.000Z");
+             i += Date.parse("1970-01-01T00:05:00.000Z")) {
+            next_index = recents.slice(last_index).findIndex(function (elem) {
+                return this <= Date.parse("1970-01-01" + elem.time.slice(elem.time.indexOf('T'))); // i <= Date.parse(elem);
+            }, i);
+            if (next_index === -1) next_index = recents.length;
+            buckets.push({"time": (new Date(i)), "count": (next_index - last_index)});
+            last_index = next_index;
+        }
+
+        // x.domain(d3.extent(data, function (d) {
+        //     return d.date;
+        // }));
+        // y.domain([0, d3.max(data, function (d) {
+        //     return d.price;
+        // })]);
+
+        x.domain([new Date("1970-01-01T00:00:00.000"),
+            new Date("1970-01-02T00:00:00.000")]);
+        y.domain([0, d3.max(buckets, function(d) {return d.count;})]);
+
+        x2.domain(x.domain());
+        y2.domain(y.domain());
+
+        // focus.append("path")
+        //     .datum(data)
+        //     .attr("class", "area")
+        //     .attr("d", area);
+        //
+        // focus.append("g")
+        //     .attr("class", "axis axis--x")
+        //     .attr("transform", "translate(0," + height + ")")
+        //     .call(xAxis);
+        //
+        // focus.append("g")
+        //     .attr("class", "axis axis--y")
+        //     .call(yAxis);
+
+        context.append("path")
+            .datum(buckets)
+            .attr("class", "area")
+            .attr("d", area2);
+
+        context.append("g")
+            .attr("class", "axis axis--x")
+            .attr("transform", "translate(0," + height2 + ")")
+            .call(xAxis2);
+
+        context.append("g")
+            .attr("class", "brush")
+            .call(brush)
+            .call(brush.move, x.range());
     });
 
     drag = simulation => {
@@ -127,119 +245,81 @@
     }
 
 
-    var parseDate = d3.timeParse("%b %Y");
-
-    var x = d3.scaleTime().range([0, width]),
-        x2 = d3.scaleTime().range([0, width]),
-        y = d3.scaleLinear().range([height, 0]),
-        y2 = d3.scaleLinear().range([height2, 0]);
-
-    var xAxis = d3.axisBottom(x),
-        xAxis2 = d3.axisBottom(x2),
-        yAxis = d3.axisLeft(y);
-
-    var brush = d3.brushX()
-        .extent([[0, 0], [width, height2]])
-        .on("brush end", brushed);
-
-    var zoom = d3.zoom()
-        .scaleExtent([1, Infinity])
-        .translateExtent([[0, 0], [width, height]])
-        .extent([[0, 0], [width, height]])
-        .on("zoom", zoomed);
-
-    var area = d3.area()
-        .curve(d3.curveMonotoneX)
-        .x(function (d) {
-            return x(d.date);
-        })
-        .y0(height)
-        .y1(function (d) {
-            return y(d.price);
-        });
-
-    var area2 = d3.area()
-        .curve(d3.curveMonotoneX)
-        .x(function (d) {
-            return x2(d.date);
-        })
-        .y0(height2)
-        .y1(function (d) {
-            return y2(d.price);
-        });
-
-    svg.append("defs").append("clipPath")
-        .attr("id", "clip")
-        .append("rect")
-        .attr("width", width)
-        .attr("height", height);
-
-    // var focus = svg.append("g")
-    //     .attr("class", "focus")
-    //     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-    var context = svg.append("g")
-        .attr("class", "context")
-        .attr("transform", "translate(" + margin2.left + "," + margin2.top + ")");
-
-    var stored_data;
-
-    d3.csv("sp500.csv", type, function (error, data) {
-        if (error) throw error;
-
-        stored_data = data;
-
-        x.domain(d3.extent(data, function (d) {
-            return d.date;
-        }));
-        y.domain([0, d3.max(data, function (d) {
-            return d.price;
-        })]);
-        x2.domain(x.domain());
-        y2.domain(y.domain());
-
-        // focus.append("path")
-        //     .datum(data)
-        //     .attr("class", "area")
-        //     .attr("d", area);
-        //
-        // focus.append("g")
-        //     .attr("class", "axis axis--x")
-        //     .attr("transform", "translate(0," + height + ")")
-        //     .call(xAxis);
-        //
-        // focus.append("g")
-        //     .attr("class", "axis axis--y")
-        //     .call(yAxis);
-
-        context.append("path")
-            .datum(data)
-            .attr("class", "area")
-            .attr("d", area2);
-
-        context.append("g")
-            .attr("class", "axis axis--x")
-            .attr("transform", "translate(0," + height2 + ")")
-            .call(xAxis2);
-
-        context.append("g")
-            .attr("class", "brush")
-            .call(brush)
-            .call(brush.move, x.range());
-
-        // svg.append("rect")
-        //     .attr("class", "zoom")
-        //     .attr("width", width)
-        //     .attr("height", height)
-        //     .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
-        //     .call(zoom);
-    });
+    // d3.json("data.json", type, function (error, data) {
+    //     if (error) throw error;
+    //
+    //     stored_data = data;
+    //     var recents = data.recents;
+    //     var buckets = [];
+    //     var last_index = 0;
+    //     var next_index;
+    //     for (var i = Date.parse("1970-01-01T00:05:00.000Z");
+    //          i <= Date.parse("1970-01-02T00:00:00.000Z");
+    //          i += Date.parse("1970-01-01T00:05:00.000Z")) {
+    //         next_index = recents.slice(last_index).findIndex(function (elem) {
+    //             return this <= Date.parse("1970-01-01" + elem.slice(elem.indexOf('T'))); // i <= Date.parse(elem);
+    //         }, i);
+    //         if (next_index === -1) next_index = recents.length;
+    //         buckets.push(next_index - last_index);
+    //         last_index = next_index;
+    //     }
+    //
+    //     // x.domain(d3.extent(data, function (d) {
+    //     //     return d.date;
+    //     // }));
+    //     // y.domain([0, d3.max(data, function (d) {
+    //     //     return d.price;
+    //     // })]);
+    //
+    //     x.domain([new Date("1970-01-01T00:00:00.000"),
+    //         new Date("1970-01-02T00:00:00.000")]);
+    //     y.domain([0, d3.max(buckets)]);
+    //
+    //     x2.domain(x.domain());
+    //     y2.domain(y.domain());
+    //
+    //     // focus.append("path")
+    //     //     .datum(data)
+    //     //     .attr("class", "area")
+    //     //     .attr("d", area);
+    //     //
+    //     // focus.append("g")
+    //     //     .attr("class", "axis axis--x")
+    //     //     .attr("transform", "translate(0," + height + ")")
+    //     //     .call(xAxis);
+    //     //
+    //     // focus.append("g")
+    //     //     .attr("class", "axis axis--y")
+    //     //     .call(yAxis);
+    //
+    //     context.append("path")
+    //         .datum(data)
+    //         .attr("class", "area")
+    //         .attr("d", area2);
+    //
+    //     context.append("g")
+    //         .attr("class", "axis axis--x")
+    //         .attr("transform", "translate(0," + height2 + ")")
+    //         .call(xAxis2);
+    //
+    //     context.append("g")
+    //         .attr("class", "brush")
+    //         .call(brush)
+    //         .call(brush.move, x.range());
+    //
+    //     // svg.append("rect")
+    //     //     .attr("class", "zoom")
+    //     //     .attr("width", width)
+    //     //     .attr("height", height)
+    //     //     .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+    //     //     .call(zoom);
+    // });
 
     function brushed() {
         if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
         var s = d3.event.selection || x2.range();
         x.domain(s.map(x2.invert, x2));  //gives DateTime range that we want
-        var new_data = stored_data.filter(point => s.map(x2.invert, x2)[0] <= point.date && point.date <= s.map(x2.invert, x2)[1]);
+        var new_data = stored_data.filter(point => s.map(x2.invert, x2)[0] <= point.time && point.time <= s.map(x2.invert, x2)[1]);
         // focus.select(".area").attr("d", area);
         // focus.select(".axis--x").call(xAxis);
         svg.select(".zoom").call(zoom.transform, d3.zoomIdentity
