@@ -1,48 +1,77 @@
-var recents = [
+{
+  "recents": [
     {
-      ‘DateTime’: "2016-12-13T20:44:04.589Z",
-      ‘artist’: "0EmeFodog0BfCgMzAIvKQp",
-      ‘track’: "3ZFTkvIE7kyPt6Nu3PEa7V"},
-    {
-      ‘DateTime’: "2018-12-02T05:04:49.731Z",
-      ‘artist’: "0C0XlULifJtAgn6ZNCW2eu",
-      ‘track’: "7oK9VyNzrYvRFo7nQEYkWN"},
-    {
-      ‘DateTime’: "2018-12-02T05:01:25.136Z",
-      ‘artist’: "1S9WGrK7SZfXXQtHBYzDle",
-      ‘track’: "1vNn7rVQT6UtEW1NGH53fT"
-    }, {
-      ‘DateTime’: "2018-12-02T04:53:10.247Z",
-      ‘artist’: "2RDOrhPqAM4jzTRCEb19qX",
-      ‘track’: "1xzBco0xcoJEDXktl7Jxrr"
-    }, {
-      ‘DateTime’: "played_at": "2018-12-02T04:50:18.966Z",
-      ‘artist’: "07ZhipyrvoyNoJejeyM0PQ",
-      ‘track’: "484SLUDMf2BmrUwtQWkvUa"
+      "DateTime": "2016-12-13T20:44:04.589Z",
+      "artist": "0EmeFodog0BfCgMzAIvKQp",
+      "track": "3ZFTkvIE7kyPt6Nu3PEa7V"
     },
-]
-
-var artists = {
-    ‘nodes’ : [
-        {‘id’: "0EmeFodog0BfCgMzAIvKQp"},
-        {‘id’: "0C0XlULifJtAgn6ZNCW2eu"},
-        {‘id’: "1S9WGrK7SZfXXQtHBYzDle"},
-        {‘id’: "2RDOrhPqAM4jzTRCEb19qX"},
-        {‘id’: "07ZhipyrvoyNoJejeyM0PQ"},
-    ],
-    ‘links’ : [
-        {‘source’: "0EmeFodog0BfCgMzAIvKQp", ‘target’: "0C0XlULifJtAgn6ZNCW2eu"},
-        {‘source’: "0C0XlULifJtAgn6ZNCW2eu", ‘target’: "1S9WGrK7SZfXXQtHBYzDle"},
-        {‘source’: "1S9WGrK7SZfXXQtHBYzDle", ‘target’: "2RDOrhPqAM4jzTRCEb19qX"},
-        {‘source’: "2RDOrhPqAM4jzTRCEb19qX", ‘target’: "07ZhipyrvoyNoJejeyM0PQ"’},
-        {‘source’: "07ZhipyrvoyNoJejeyM0PQ", ‘target’: "1S9WGrK7SZfXXQtHBYzDle"},
-    ]
-}
-
-var tracks = {
-    "0EmeFodog0BfCgMzAIvKQp" : .27,
-    "0C0XlULifJtAgn6ZNCW2eu" : .32,
-    "1S9WGrK7SZfXXQtHBYzDle" : .53,
-    "2RDOrhPqAM4jzTRCEb19qX" : .12,
-    "07ZhipyrvoyNoJejeyM0PQ" : .71,
+    {
+      "DateTime": "2018-12-02T05:04:49.731Z",
+      "artist": "0C0XlULifJtAgn6ZNCW2eu",
+      "track": "7oK9VyNzrYvRFo7nQEYkWN"
+    },
+    {
+      "DateTime": "2018-12-02T05:01:25.136Z",
+      "artist": "1S9WGrK7SZfXXQtHBYzDle",
+      "track": "1vNn7rVQT6UtEW1NGH53fT"
+    },
+    {
+      "DateTime": "2018-12-02T04:53:10.247Z",
+      "artist": "2RDOrhPqAM4jzTRCEb19qX",
+      "track": "1xzBco0xcoJEDXktl7Jxrr"
+    },
+    {
+      "DateTime": "2018-12-02T04:50:18.966Z",
+      "artist": "07ZhipyrvoyNoJejeyM0PQ",
+      "track": "484SLUDMf2BmrUwtQWkvUa"
+    }
+  ],
+  "artists": {
+    "nodes": [
+      {
+        "id": "0EmeFodog0BfCgMzAIvKQp"
+      },
+      {
+        "id": "0C0XlULifJtAgn6ZNCW2eu"
+      },
+      {
+        "id": "1S9WGrK7SZfXXQtHBYzDle"
+      },
+      {
+        "id": "2RDOrhPqAM4jzTRCEb19qX"
+      },
+      {
+        "id": "07ZhipyrvoyNoJejeyM0PQ"
+      }
+    ],
+    "links": [
+      {
+        "source": "0EmeFodog0BfCgMzAIvKQp",
+        "target": "0C0XlULifJtAgn6ZNCW2eu"
+      },
+      {
+        "source": "0C0XlULifJtAgn6ZNCW2eu",
+        "target": "1S9WGrK7SZfXXQtHBYzDle"
+      },
+      {
+        "source": "1S9WGrK7SZfXXQtHBYzDle",
+        "target": "2RDOrhPqAM4jzTRCEb19qX"
+      },
+      {
+        "source": "2RDOrhPqAM4jzTRCEb19qX",
+        "target": "07ZhipyrvoyNoJejeyM0PQ"
+      },
+      {
+        "source": "07ZhipyrvoyNoJejeyM0PQ",
+        "target": "1S9WGrK7SZfXXQtHBYzDle"
+      }
+    ]
+  },
+  "tracks": {
+    "0EmeFodog0BfCgMzAIvKQp": ".27",
+    "0C0XlULifJtAgn6ZNCW2eu": ".32",
+    "1S9WGrK7SZfXXQtHBYzDle": ".53",
+    "2RDOrhPqAM4jzTRCEb19qX": ".12",
+    "07ZhipyrvoyNoJejeyM0PQ": ".71"
+  }
 }
