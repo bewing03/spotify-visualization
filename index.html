@@ -154,7 +154,9 @@
         }, 5000);  // removes half the links after 5 seconds and reworks forces
 
 
-        var recents = data.recents.sort;
+        var recents = data.recents.sort(function (a, b) {
+            return Date.parse(a.time) - Date.parse(b.time);
+        });
         stored_data = recents;
         var buckets = [];
         var last_index = 0;
