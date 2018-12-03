@@ -155,18 +155,18 @@
 
 
         var recents = data.recents.sort(function (a, b) {
-            return Date.parse(a.time) - Date.parse(b.time);
+            return Date.parse("1970-01-01" + a.time.slice(a.time.indexOf('T'))) - Date.parse("1970-01-01" + b.time.slice(b.time.indexOf('T')));
         });
         stored_data = recents;
         var buckets = [];
         var last_index = 0;
-        var next_index;
-        for (var i = Date.parse("1970-01-01T00:05:00.000Z");
+        var next_index = 0;
+        for (var i = Date.parse("1970-01-01T00:00:00.000Z");
              i <= Date.parse("1970-01-02T00:00:00.000Z");
-             i += Date.parse("1970-01-01T00:05:00.000Z")) {
-            next_index = recents.slice(last_index).findIndex(function (elem) {
-                return this <= Date.parse("1970-01-01" + elem.time.slice(elem.time.indexOf('T'))); // i <= Date.parse(elem);
-            }, i);
+             i += Date.parse("1970-01-01T03:00:00.000Z")) {
+            next_index = recents.findIndex(function (elem, index) {
+                return this.next_index <= index && this.i <= Date.parse("1970-01-01" + elem.time.slice(elem.time.indexOf('T'))); // i <= Date.parse(elem);
+            }, {'i':i, 'next_index':next_index});
             if (next_index === -1) next_index = recents.length;
             buckets.push({"time": (new Date(i)), "count": (next_index - last_index)});
             last_index = next_index;
