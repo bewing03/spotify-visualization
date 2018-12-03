@@ -30,23 +30,23 @@
     "nodes": [
       {
         "id": "0EmeFodog0BfCgMzAIvKQp",
-        "name": "artist_name"
+        "name": "blackbear"
       },
       {
         "id": "0C0XlULifJtAgn6ZNCW2eu",
-        "name": "artist_name"
+        "name": "Drake"
       },
       {
         "id": "1S9WGrK7SZfXXQtHBYzDle",
-        "name": "artist_name"
+        "name": "Katy Perry"
       },
       {
         "id": "2RDOrhPqAM4jzTRCEb19qX",
-        "name": "artist_name"
+        "name": "The Beatles"
       },
       {
         "id": "07ZhipyrvoyNoJejeyM0PQ",
-        "name": "artist_name"
+        "name": "Ra Ra Riot"
       }
     ],
     "links": [
@@ -73,10 +73,10 @@
     ]
   },
   "tracks": {
-    "0EmeFodog0BfCgMzAIvKQp": {"name": "track_name", "valence": ".27"},
-    "0C0XlULifJtAgn6ZNCW2eu": {"name": "track_name", "valence": ".32"},
-    "1S9WGrK7SZfXXQtHBYzDle": {"name": "track_name", "valence": ".53"},
-    "2RDOrhPqAM4jzTRCEb19qX": {"name": "track_name", "valence": ".12"},
-    "07ZhipyrvoyNoJejeyM0PQ": {"name": "track_name", "valence": ".71"}
+    "0EmeFodog0BfCgMzAIvKQp": {"name": "do re mi", "valence": ".27"},
+    "0C0XlULifJtAgn6ZNCW2eu": {"name": "Yes Indeed", "valence": ".32"},
+    "1S9WGrK7SZfXXQtHBYzDle": {"name": "Firework", "valence": ".53"},
+    "2RDOrhPqAM4jzTRCEb19qX": {"name": "Yesterday", "valence": ".12"},
+    "07ZhipyrvoyNoJejeyM0PQ": {"name": "Absolutely", "valence": ".71"}
   }
 }
