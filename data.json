@@ -29,19 +29,24 @@
   "artists": {
     "nodes": [
       {
-        "id": "0EmeFodog0BfCgMzAIvKQp"
+        "id": "0EmeFodog0BfCgMzAIvKQp",
+        "name": "artist_name"
       },
       {
-        "id": "0C0XlULifJtAgn6ZNCW2eu"
+        "id": "0C0XlULifJtAgn6ZNCW2eu",
+        "name": "artist_name"
       },
       {
-        "id": "1S9WGrK7SZfXXQtHBYzDle"
+        "id": "1S9WGrK7SZfXXQtHBYzDle",
+        "name": "artist_name"
       },
       {
-        "id": "2RDOrhPqAM4jzTRCEb19qX"
+        "id": "2RDOrhPqAM4jzTRCEb19qX",
+        "name": "artist_name"
       },
       {
-        "id": "07ZhipyrvoyNoJejeyM0PQ"
+        "id": "07ZhipyrvoyNoJejeyM0PQ",
+        "name": "artist_name"
       }
     ],
     "links": [
@@ -68,10 +73,10 @@
     ]
   },
   "tracks": {
-    "0EmeFodog0BfCgMzAIvKQp": ".27",
-    "0C0XlULifJtAgn6ZNCW2eu": ".32",
-    "1S9WGrK7SZfXXQtHBYzDle": ".53",
-    "2RDOrhPqAM4jzTRCEb19qX": ".12",
-    "07ZhipyrvoyNoJejeyM0PQ": ".71"
+    "0EmeFodog0BfCgMzAIvKQp": {"name": "track_name", "valence": ".27"},
+    "0C0XlULifJtAgn6ZNCW2eu": {"name": "track_name", "valence": ".32"},
+    "1S9WGrK7SZfXXQtHBYzDle": {"name": "track_name", "valence": ".53"},
+    "2RDOrhPqAM4jzTRCEb19qX": {"name": "track_name", "valence": ".12"},
+    "07ZhipyrvoyNoJejeyM0PQ": {"name": "track_name", "valence": ".71"}
   }
 }
