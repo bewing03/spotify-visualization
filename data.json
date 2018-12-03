@@ -24,6 +24,31 @@
       "time": "2018-12-02T04:50:18.966Z",
       "artist": "07ZhipyrvoyNoJejeyM0PQ",
       "track": "484SLUDMf2BmrUwtQWkvUa"
+    },
+    {
+      "time": "2018-12-03T17:45:01.564Z",
+      "artist": "7HkdQ0gt53LP4zmHsL0nap",
+      "track": "6CTWathupIiDs7U4InHnDA",
+    },
+    {
+      "time": "2018-12-03T17:41:27.981Z",
+      "artist": "5sKvgmG84C0bIMWeS2SRPr",
+      "track": "6H0G73m1c1NpAPpSxUmrtZ"
+    }
+    ,{
+      "time": "2018-12-02T04:25:47.695Z",
+      "artist": "1G9G7WwrXka3Z1r7aIDjI7",
+      "track": "2PpruBYCo4H7WOBJ7Q2EwM"
+    }
+    ,{
+      "time": "2018-12-02T04:21:52.743Z",
+      "artist": "6t1gpxYbY8OlLA7D2RiikQ",
+      "track": "21RzyxY3EFaxVy6K4RqaU9"
+    },
+    {
+      "time": "2018-12-02T04:19:15.353Z",
+      "artist": "0hCNtLu0JehylgoiP8L4Gh",
+      "track": "6kex4EBAj0WHXDKZMEJaaF"
     }
   ],
   "artists": {
@@ -47,6 +72,26 @@
       {
         "id": "07ZhipyrvoyNoJejeyM0PQ",
         "name": "Ra Ra Riot"
+      },
+      {
+        "id": "6t1gpxYbY8OlLA7D2RiikQ",
+        "name": "Loud Luxury"
+      },
+      {
+        "id": "1G9G7WwrXka3Z1r7aIDjI7",
+        "name": "Outkast"
+      },
+      {
+        "id": "0hCNtLu0JehylgoiP8L4Gh",
+        "name": "Nicki Minaj"
+      },
+      {
+        "id": "7HkdQ0gt53LP4zmHsL0nap",
+        "name": "Ella Mai"
+      },
+      {
+        "id": "5sKvgmG84C0bIMWeS2SRPr",
+        "name": "Brasstracks"
       }
     ],
     "links": [
@@ -67,9 +112,21 @@
         "target": "07ZhipyrvoyNoJejeyM0PQ"
       },
       {
+        "source": "0hCNtLu0JehylgoiP8L4Gh",
+        "target": "1S9WGrK7SZfXXQtHBYzDle"
+      },
+      {
         "source": "07ZhipyrvoyNoJejeyM0PQ",
         "target": "1S9WGrK7SZfXXQtHBYzDle"
-      }
+      },
+      {
+        "source": "2RDOrhPqAM4jzTRCEb19qX",
+        "target": "1S9WGrK7SZfXXQtHBYzDle"
+      },
+      {
+        "source": "0EmeFodog0BfCgMzAIvKQp",
+        "target": "6t1gpxYbY8OlLA7D2RiikQ"
+      },
     ]
   },
   "tracks": {
@@ -77,6 +134,11 @@
     "0C0XlULifJtAgn6ZNCW2eu": {"name": "Yes Indeed", "valence": ".32"},
     "1S9WGrK7SZfXXQtHBYzDle": {"name": "Firework", "valence": ".53"},
     "2RDOrhPqAM4jzTRCEb19qX": {"name": "Yesterday", "valence": ".12"},
-    "07ZhipyrvoyNoJejeyM0PQ": {"name": "Absolutely", "valence": ".71"}
+    "07ZhipyrvoyNoJejeyM0PQ": {"name": "Absolutely", "valence": ".71"},
+    "7HkdQ0gt53LP4zmHsL0nap": {"name": "Trip", "valence": ".51"},
+    "5sKvgmG84C0bIMWeS2SRPr": {"name": "In My Feelings", "valence": ".62"},
+    "1G9G7WwrXka3Z1r7aIDjI7": {"name": "Hey Ya", "valence": ".35"},
+    "6t1gpxYbY8OlLA7D2RiikQ": {"name": "Loud", "valence": "47"},
+    "0hCNtLu0JehylgoiP8L4Gh": {"name": "Swalla", "valence": ".89"},
   }
 }
