@@ -5,7 +5,7 @@
 <style>
 
     .area {
-        fill: steelblue;/*url("#temperature-gradient");*/
+        fill: url("#temperature-gradient");
         clip-path: url(#clip);
     }
 
@@ -72,7 +72,7 @@
         })
         .y0(height)
         .y1(function (d) {
-            return y(d.count);
+            return y(d.arr.length);
         });
 
     var area2 = d3.area()
@@ -82,7 +82,7 @@
         })
         .y0(height2)
         .y1(function (d) {
-            return y2(d.count);
+            return y2(d.arr.length);
         });
 
     svg.append("defs").append("clipPath")
@@ -99,10 +99,22 @@
         .attr("class", "context")
         .attr("transform", "translate(" + margin2.left + "," + margin2.top + ")");
 
+    var buckets;
+    var graph;
+    var link;
+    var node;
+    var tick_out_scope;
+
+    function parseToHours(date) {
+        var currentDate = Date.now();
+        return new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDay(),
+            date.getHours(), date.getMinutes(), date.getSeconds(), date.getMilliseconds());
+    }
+
     d3.json("data.json", function (error, data) {
         if (error) throw error;
 
-        var graph = data.artists;
+        graph = data.artists;
 
         var all_links = graph.links;
         simulation
@@ -112,7 +124,7 @@
         simulation.force("link")
             .links(graph.links);
 
-        const link = svg.append("g")
+         link = svg.append("g")
             .attr("stroke", "#999")
             .attr("stroke-opacity", 0.6)
             .selectAll("line")
@@ -120,7 +132,7 @@
             .enter().append("line")
             .attr("stroke-width", d => Math.sqrt(d.value));
 
-        const node = svg.append("g")
+         node = svg.append("g")
             .attr("stroke", "#fff")
             .attr("stroke-width", 1.5)
             .selectAll("circle")
@@ -141,24 +153,25 @@
                 .attr("cx", d => d.x)
                 .attr("cy", d => d.y);
         }
+        // tick_out_scope = ticked;
 
         function dragsubject() {
             return simulation.find(d3.event.x, d3.event.y);
         }
 
-        setTimeout(function () {
-            var temp_links = all_links.slice(Math.round(all_links.length / 2));
-            simulation.force("link").links(temp_links);
-            link.data(temp_links);
-            simulation.alphaTarget(0.3).restart();
-        }, 5000);  // removes half the links after 5 seconds and reworks forces
+        // setTimeout(function () {
+        //     var temp_links = all_links.slice(Math.round(all_links.length / 2));
+        //     simulation.force("link").links(temp_links);
+        //     link.data(temp_links);
+        //     simulation.alphaTarget(0.3).restart();
+        // }, 5000);  // removes half the links after 5 seconds and reworks forces
 
 
         var recents = data.recents.sort(function (a, b) {
             return Date.parse("1970-01-01" + a.time.slice(a.time.indexOf('T'))) - Date.parse("1970-01-01" + b.time.slice(b.time.indexOf('T')));
         });
         stored_data = recents;
-        var buckets = [];
+        buckets = [];
         var last_index = 0;
         var next_index = 0;
         for (var i = Date.parse("1970-01-01T00:00:00.000Z");
@@ -166,12 +179,15 @@
              i += Date.parse("1970-01-01T03:00:00.000Z")) {
             next_index = recents.findIndex(function (elem, index) {
                 return this.next_index <= index && this.i <= Date.parse("1970-01-01" + elem.time.slice(elem.time.indexOf('T'))); // i <= Date.parse(elem);
-            }, {'i':i, 'next_index':next_index});
+            }, {'i': i, 'next_index': next_index});
             if (next_index === -1) next_index = recents.length;
-            buckets.push({"time": (new Date(i + Date.parse("1970-01-01T05:00:00.000Z"))), "count": (next_index - last_index)});
+            buckets.push({
+                "time": (new Date(i + Date.parse("1970-01-01T05:00:00.000Z"))),
+                "arr": recents.slice(last_index, next_index)
+            });
             last_index = next_index;
 
-            if (i === Date.parse("1970-01-02T00:00:00.000Z")) buckets[0] = buckets[buckets.length - 1];
+            if (i === Date.parse("1970-01-02T00:00:00.000Z")) buckets[0].count = buckets[buckets.length - 1].count;
         }
 
         // x.domain(d3.extent(data, function (d) {
@@ -183,7 +199,9 @@
 
         x.domain([new Date("1970-01-01T00:00:00.000"),
             new Date("1970-01-02T00:00:00.000")]);
-        y.domain([0, d3.max(buckets, function(d) {return d.count;})]);
+        y.domain([0, d3.max(buckets, function (d) {
+            return d.arr.length;
+        })]);
 
         x2.domain(x.domain());
         y2.domain(y.domain());
@@ -319,16 +337,102 @@
     //     //     .call(zoom);
     // });
 
+    function update_graph(data) {
+        simulation.stop();
+        //use graph, link, node
+        //all_links = graph.links
+        var all_recent_artists = [];
+        for (var i = 0; i < data.length; i++) {
+            all_recent_artists.push(...data[i].arr.map(function (d) {
+                return d.artist;
+            }));
+        }
+        //add in top artists to all_recent_artists
+        //filter
+        var new_links = graph.links.filter(function (d) {
+            return all_recent_artists.includes(d.source.id) && all_recent_artists.includes(d.target.id);
+        });
+        var new_nodes = graph.nodes.filter(function (d) {
+            return all_recent_artists.includes(d.id);
+        });
+
+        new_nodes.sort(function (a, b) {
+            if (a.id < b.id) return -1;
+            if (a.id > b.id) return 1;
+            return 0;
+        });
+        new_links.sort(function (a, b) {
+            if (a.source.id + a.target.id < b.source.id + b.target.id) return -1;
+            if (a.source.id + a.target.id > b.source.id + b.target.id) return 1;
+            return 0;
+        });
+
+
+        // link = svg.append("g")
+        //     .attr("stroke", "#999")
+        //     .attr("stroke-opacity", 0.6)
+        //     .selectAll("line")
+        //     .data(graph.links)
+        //     .enter().append("line")
+        //     .attr("stroke-width", d => Math.sqrt(d.value));
+        //
+        // node = svg.append("g")
+        //     .attr("stroke", "#fff")
+        //     .attr("stroke-width", 1.5)
+        //     .selectAll("circle")
+        //     .data(graph.nodes)
+        //     .enter().append("circle")
+        //     .attr("r", 5)
+        //     .attr("fill", color)
+        //     .call(drag(simulation));
+
+         node = svg.select("g").selectAll("circle").data(new_nodes);
+        // node = node.data(new_nodes);
+        // node.exit().remove();
+        node.enter().append("circle").merge(node)
+            .attr("r", 5)
+            .attr("fill", color)
+            .call(drag(simulation));
+        node.exit().remove();
+
+         link = svg.select("g").selectAll("line").data(new_links);
+        // link = link.data(new_links);
+        // link.exit().remove();
+        link.enter().append("line").merge(link)
+            .attr("stroke-width", d => Math.sqrt(d.value));
+        link.exit().remove();
+
+
+
+        function ticked() {
+            link
+                .attr("x1", d => d.source.x)
+                .attr("y1", d => d.source.y)
+                .attr("x2", d => d.target.x)
+                .attr("y2", d => d.target.y);
+
+            node
+                .attr("cx", d => d.x)
+                .attr("cy", d => d.y);
+        }
+
+                        simulation.force("link").links(new_links);
+        simulation.nodes(new_nodes).on("tick", ticked);
+        simulation.alphaTarget(0.3).restart();
+    }
+
     function brushed() {
         if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
         var s = d3.event.selection || x2.range();
         x.domain(s.map(x2.invert, x2));  //gives DateTime range that we want
-        var new_data = stored_data.filter(point => s.map(x2.invert, x2)[0] <= point.time && point.time <= s.map(x2.invert, x2)[1]);
+        var new_data = buckets.filter(point => s.map(x2.invert, x2)[0] <= point.time && point.time <= s.map(x2.invert, x2)[1]);
         // focus.select(".area").attr("d", area);
         // focus.select(".axis--x").call(xAxis);
         svg.select(".zoom").call(zoom.transform, d3.zoomIdentity
             .scale(width / (s[1] - s[0]))
             .translate(-s[0], 0));
+
+        update_graph(new_data);
     }
 
     function zoomed() {
