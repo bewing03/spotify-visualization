@@ -18,6 +18,7 @@
 </style>
 <!--<svg width="960" height="500"></svg>-->
 <script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
 <!--<script src="js/d3.v4.min.js"></script>-->
 <script>
     // d3.select("body").append("svg").attr("width", 960).attr("height", 500);
@@ -103,7 +104,7 @@
     var graph;
     var link;
     var node;
-    var tick_out_scope;
+    var gradient_offsets = [];
 
     function parseToHours(date) {
         var currentDate = Date.now();
@@ -113,6 +114,8 @@
 
     d3.json("data.json", function (error, data) {
         if (error) throw error;
+
+        var tracks = data.tracks;
 
         graph = data.artists;
 
@@ -174,7 +177,8 @@
         buckets = [];
         var last_index = 0;
         var next_index = 0;
-        for (var i = Date.parse("1970-01-01T00:00:00.000Z");
+        var i;
+        for (i = Date.parse("1970-01-01T00:00:00.000Z");
              i <= Date.parse("1970-01-02T00:00:00.000Z");
              i += Date.parse("1970-01-01T03:00:00.000Z")) {
             next_index = recents.findIndex(function (elem, index) {
@@ -187,8 +191,16 @@
             });
             last_index = next_index;
 
-            if (i === Date.parse("1970-01-02T00:00:00.000Z")) buckets[0].count = buckets[buckets.length - 1].count;
+            if (i === Date.parse("1970-01-02T00:00:00.000Z")) buckets[0].arr = buckets[buckets.length - 1].arr;
         }
+
+        for (i = 0; i < buckets.length; i++) {
+            var mean = d3.mean(buckets[i].arr.map(e => Number(tracks[e.artist].valence)));
+            if (!mean) mean = 0;
+            gradient_offsets.push({offset: (100 * i / (buckets.length - 1)) + "%", color: d3.interpolateRdBu(mean)}); //should be e.track...
+        }
+
+        addGradient(gradient_offsets);
 
         // x.domain(d3.extent(data, function (d) {
         //     return d.date;
@@ -386,22 +398,21 @@
         //     .attr("fill", color)
         //     .call(drag(simulation));
 
-         node = svg.select("g").selectAll("circle").data(new_nodes);
-        // node = node.data(new_nodes);
-        // node.exit().remove();
-        node.enter().append("circle").merge(node)
+         // node = svg.select("g").selectAll("circle").data(new_nodes);
+        node = node.data(new_nodes);
+        node.exit().remove();
+        node = node.enter().append("circle").merge(node)
             .attr("r", 5)
             .attr("fill", color)
             .call(drag(simulation));
-        node.exit().remove();
+        // node = nodeEnter.merge(node);
 
-         link = svg.select("g").selectAll("line").data(new_links);
-        // link = link.data(new_links);
-        // link.exit().remove();
-        link.enter().append("line").merge(link)
-            .attr("stroke-width", d => Math.sqrt(d.value));
+         // link = svg.select("g").selectAll("line").data(new_links);
+        link = link.data(new_links);
         link.exit().remove();
-
+         link = link.enter().append("line").merge(link)
+            .attr("stroke-width", d => Math.sqrt(d.value));
+        // link = linkEnter.merge(link);
 
 
         function ticked() {
@@ -450,24 +461,23 @@
         return d;
     }
 
-    svg.append("linearGradient")
-        .attr("id", "temperature-gradient")
-        .attr("gradientUnits", "userSpaceOnUse")
-        .attr("x1", "0%").attr("y1", "0%")
-        .attr("x2", "100%").attr("y2", "0%")
-        .selectAll("stop")
-        .data([
-            {offset: "0%", color: "steelblue"},
-            {offset: "50%", color: "gray"},
-            {offset: "100%", color: "red"}
-        ])
-        .enter().append("stop")
-        .attr("offset", function (d) {
-            return d.offset;
-        })
-        .attr("stop-color", function (d) {
-            return d.color;
-        });
+    function addGradient(gradientList) {
+        svg.append("linearGradient")
+            .attr("id", "temperature-gradient")
+            .attr("gradientUnits", "userSpaceOnUse")
+            .attr("x1", "0%").attr("y1", "0%")
+            .attr("x2", "100%").attr("y2", "0%")
+            .selectAll("stop")
+            .data(gradientList)
+            .enter().append("stop")
+            .attr("offset", function (d) {
+                return d.offset;
+            })
+            .attr("stop-color", function (d) {
+                return d.color;
+            });
+    }
+
 
 
 </script>
