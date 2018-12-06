@@ -51,7 +51,7 @@
       "track": "6kex4EBAj0WHXDKZMEJaaF"
     }
   ],
-  "artists": {
+  "artists_graph": {
     "nodes": [
       {
         "id": "0EmeFodog0BfCgMzAIvKQp",
@@ -92,6 +92,10 @@
       {
         "id": "5sKvgmG84C0bIMWeS2SRPr",
         "name": "Brasstracks"
+      },
+      {
+        "id": "5sKvgmG84C0bIMWeS2SRPc",
+        "name": "hoodie allen"
       }
     ],
     "links": [
@@ -126,6 +130,10 @@
       {
         "source": "0EmeFodog0BfCgMzAIvKQp",
         "target": "6t1gpxYbY8OlLA7D2RiikQ"
+      },
+      {
+        "source": "5sKvgmG84C0bIMWeS2SRPc",
+        "target": "0EmeFodog0BfCgMzAIvKQp"
       }
     ]
   },
@@ -138,7 +146,19 @@
     "7HkdQ0gt53LP4zmHsL0nap": {"name": "Trip", "valence": ".51"},
     "5sKvgmG84C0bIMWeS2SRPr": {"name": "In My Feelings", "valence": ".62"},
     "1G9G7WwrXka3Z1r7aIDjI7": {"name": "Hey Ya", "valence": ".35"},
-    "6t1gpxYbY8OlLA7D2RiikQ": {"name": "Loud", "valence": "47"},
+    "6t1gpxYbY8OlLA7D2RiikQ": {"name": "Loud", "valence": ".47"},
     "0hCNtLu0JehylgoiP8L4Gh": {"name": "Swalla", "valence": ".89"}
+  },
+  "artists": {
+    "0EmeFodog0BfCgMzAIvKQp": {"name": "blackbear", "related": ["5sKvgmG84C0bIMWeS2SRPc"], "genres": ["rap"]},
+    "0C0XlULifJtAgn6ZNCW2eu": {"name": "Drake", "related": ["big sean", "tyga"], "genres": ["rock"]},
+    "1S9WGrK7SZfXXQtHBYzDle": {"name": "Katy Perry", "related": [], "genres": []},
+    "2RDOrhPqAM4jzTRCEb19qX": {"name": "The Beatles", "related": [], "genres": []},
+    "07ZhipyrvoyNoJejeyM0PQ": {"name": "Ra Ra Riot", "related": [], "genres": []},
+    "7HkdQ0gt53LP4zmHsL0nap": {"name": "Loud Luxury", "related": [], "genres": []},
+    "5sKvgmG84C0bIMWeS2SRPr": {"name": "Brasstracks", "related": [], "genres": []},
+    "1G9G7WwrXka3Z1r7aIDjI7": {"name": "Outkast", "related": [], "genres": []},
+    "6t1gpxYbY8OlLA7D2RiikQ": {"name": "Loud Luxury", "related": [], "genres": []},
+    "0hCNtLu0JehylgoiP8L4Gh": {"name": "Nicki Minaj", "related": [], "genres": []}
   }
 }
