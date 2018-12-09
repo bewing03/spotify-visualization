@@ -149,16 +149,22 @@
     "6t1gpxYbY8OlLA7D2RiikQ": {"name": "Loud", "valence": ".47"},
     "0hCNtLu0JehylgoiP8L4Gh": {"name": "Swalla", "valence": ".89"}
   },
-  "artists": {
-    "0EmeFodog0BfCgMzAIvKQp": {"name": "blackbear", "related": ["5sKvgmG84C0bIMWeS2SRPc"], "genres": ["rap"]},
-    "0C0XlULifJtAgn6ZNCW2eu": {"name": "Drake", "related": ["big sean", "tyga"], "genres": ["rock"]},
-    "1S9WGrK7SZfXXQtHBYzDle": {"name": "Katy Perry", "related": [], "genres": []},
-    "2RDOrhPqAM4jzTRCEb19qX": {"name": "The Beatles", "related": [], "genres": []},
-    "07ZhipyrvoyNoJejeyM0PQ": {"name": "Ra Ra Riot", "related": [], "genres": []},
-    "7HkdQ0gt53LP4zmHsL0nap": {"name": "Loud Luxury", "related": [], "genres": []},
-    "5sKvgmG84C0bIMWeS2SRPr": {"name": "Brasstracks", "related": [], "genres": []},
-    "1G9G7WwrXka3Z1r7aIDjI7": {"name": "Outkast", "related": [], "genres": []},
-    "6t1gpxYbY8OlLA7D2RiikQ": {"name": "Loud Luxury", "related": [], "genres": []},
-    "0hCNtLu0JehylgoiP8L4Gh": {"name": "Nicki Minaj", "related": [], "genres": []}
+  "top_artists": {
+    "0EmeFodog0BfCgMzAIvKQq": {"name": "Tyga", "genres": ["pop"]}
+  },
+  "recent_artists": {
+    "0EmeFodog0BfCgMzAIvKQp": {"name": "blackbear", "genres": ["rap"]},
+    "0C0XlULifJtAgn6ZNCW2eu": {"name": "Drake", "genres": ["rock"]},
+    "1S9WGrK7SZfXXQtHBYzDle": {"name": "Katy Perry", "genres": []},
+    "2RDOrhPqAM4jzTRCEb19qX": {"name": "The Beatles", "genres": []},
+    "07ZhipyrvoyNoJejeyM0PQ": {"name": "Ra Ra Riot", "genres": []},
+    "7HkdQ0gt53LP4zmHsL0nap": {"name": "Loud Luxury", "genres": []},
+    "5sKvgmG84C0bIMWeS2SRPr": {"name": "Brasstracks", "genres": []},
+    "1G9G7WwrXka3Z1r7aIDjI7": {"name": "Outkast", "genres": []},
+    "6t1gpxYbY8OlLA7D2RiikQ": {"name": "Loud Luxury", "genres": []},
+    "0hCNtLu0JehylgoiP8L4Gh": {"name": "Nicki Minaj", "genres": []}
+  },
+  "related_artists": {
+    "5sKvgmG84C0bIMWeS2SRPc": {"name": "hoodie allen", "genres": ["rap"]}
   }
 }

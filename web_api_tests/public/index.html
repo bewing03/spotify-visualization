@@ -104,6 +104,7 @@
             refresh_token = params.refresh_token,
             error = params.error;
 
+        var recents = JSON.parse(params.recents || "{}");
 
         // TESTING USING d3
         var svg = d3.select("body").append("svg").attr("width", 1160).attr("height", 600),

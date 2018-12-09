@@ -107,7 +107,7 @@
     var link;
     var node;
     var gradient_offsets = [];
-    var artists;
+    var recent_artists;
     var curr_buckets;
 
     function parseToHours(date) {
@@ -122,7 +122,7 @@
         var tracks = data.tracks;
         graph = data.artists_graph;
         var all_links = graph.links;
-        artists = data.artists;
+        recent_artists = data.recent_artists;
 
         simulation
             .nodes(graph.nodes)
@@ -157,7 +157,7 @@
                 update_graph(curr_buckets);
             })
             .on("click", function (d) {
-                update_graph(curr_buckets, artists[d.id].related); //gives id of node?
+                update_graph(curr_buckets, recent_artists[d.id].related); //gives id of node?
             });
 
         function ticked() {
@@ -293,13 +293,13 @@
         // const scale = d3.scaleOrdinal(d3.schemeCategory10);
         // return d => scale(d.group);
 
-        if (!(d.id in artists)) {
+        if (!(d.id in recent_artists)) {
             return 'black'
         }
 
-        if (artists[d.id].genres.includes('rock')) {
+        if (recent_artists[d.id].genres.includes('rock')) {
             return 'red'
-        } else if (artists[d.id].genres.includes('rap')) {
+        } else if (recent_artists[d.id].genres.includes('rap')) {
             return 'blue'
         } else {
             return 'black'

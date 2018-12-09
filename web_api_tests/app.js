@@ -31,14 +31,14 @@ var redirect_uri = 'http://localhost:8888/callback'; // Your redirect uri
  * @param  {number} length The length of the string
  * @return {string} The generated string
  */
-var generateRandomString = function(length) {
-  var text = '';
-  var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+var generateRandomString = function (length) {
+    var text = '';
+    var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
-  for (var i = 0; i < length; i++) {
-    text += possible.charAt(Math.floor(Math.random() * possible.length));
-  }
-  return text;
+    for (var i = 0; i < length; i++) {
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
+    return text;
 };
 
 // function sleep(millis) {
@@ -50,156 +50,394 @@ var stateKey = 'spotify_auth_state';
 var app = express();
 
 app.use(express.static(__dirname + '/public'))
-   .use(cors())
-   .use(cookieParser());
+    .use(cors())
+    .use(cookieParser());
 
-app.get('/login', function(req, res) {
+app.get('/login', function (req, res) {
 
-  var state = generateRandomString(16);
-  res.cookie(stateKey, state);
+    var state = generateRandomString(16);
+    res.cookie(stateKey, state);
 
-  // your application requests authorization
-  var scope = 'user-read-private user-read-email user-top-read';
-  res.redirect('https://accounts.spotify.com/authorize?' +
-    querystring.stringify({
-      response_type: 'code',
-      client_id: client_id,
-      scope: scope,
-      redirect_uri: redirect_uri,
-      state: state
-    }));
+    // your application requests authorization
+    var scope = 'user-read-private user-read-email user-top-read user-read-recently-played';
+    res.redirect('https://accounts.spotify.com/authorize?' +
+        querystring.stringify({
+            response_type: 'code',
+            client_id: client_id,
+            scope: scope,
+            redirect_uri: redirect_uri,
+            state: state
+        }));
 });
 
-app.get('/callback', function(req, res) {
+app.get('/callback', function (req, res) {
 
     console.log('accessed callback');
 
-  // your application requests refresh and access tokens
-  // after checking the state parameter
+    // your application requests refresh and access tokens
+    // after checking the state parameter
 
-  var code = req.query.code || null;
-  var state = req.query.state || null;
-  var storedState = req.cookies ? req.cookies[stateKey] : null;
+    var code = req.query.code || null;
+    var state = req.query.state || null;
+    var storedState = req.cookies ? req.cookies[stateKey] : null;
 
-  if (state === null || state !== storedState) {
-    res.redirect('/#' +
-      querystring.stringify({
-        error: 'state_mismatch'
-      }));
-  } else {
-    res.clearCookie(stateKey);
-    var authOptions = {
-      url: 'https://accounts.spotify.com/api/token',
-      form: {
-        code: code,
-        redirect_uri: redirect_uri,
-        grant_type: 'authorization_code'
-      },
-      headers: {
-        'Authorization': 'Basic ' + (new Buffer(client_id + ':' + client_secret).toString('base64'))
-      },
-      json: true
-    };
-
-    request.post(authOptions, function(error, response, body) {
-      if (!error && response.statusCode === 200) {
-
-        var access_token = body.access_token,
-            refresh_token = body.refresh_token;
-
-        var options = {
-          url: 'https://api.spotify.com/v1/me',
-          headers: { 'Authorization': 'Bearer ' + access_token },
-          json: true
-        };
-
-        // use the access token to access the Spotify Web API
-        request.get(options, function(error, response, body) {
-          // console.log(body);
-        });
-
-        var type = 'tracks';
-        var user_data_options = {
-            url: 'https://api.spotify.com/v1/me/top/' + type,
-            headers: { 'Authorization': 'Bearer ' + access_token },
-            qs: { limit: 50, offset: 0},
+    if (state === null || state !== storedState) {
+        res.redirect('/#' +
+            querystring.stringify({
+                error: 'state_mismatch'
+            }));
+    } else {
+        res.clearCookie(stateKey);
+        var authOptions = {
+            url: 'https://accounts.spotify.com/api/token',
+            form: {
+                code: code,
+                redirect_uri: redirect_uri,
+                grant_type: 'authorization_code'
+            },
+            headers: {
+                'Authorization': 'Basic ' + (new Buffer(client_id + ':' + client_secret).toString('base64'))
+            },
             json: true
         };
 
-        function test_this () {
-            request.get(user_data_options, function (error, response, body) {
-                console.log(response.statusCode);
-                var test_num = 0;
-                if (response.statusCode === 429) {
-                    console.log(response.headers['retry-after']);
-                    test_num = Number(response.headers['retry-after']);
-                    // sleep(response.headers['retry-after']); // need to work on sleep func
+        request.post(authOptions, function (error, response, body) {
+            if (!error && response.statusCode === 200) {
+
+                var access_token = body.access_token,
+                    refresh_token = body.refresh_token;
+
+                // var options = {
+                //     url: 'https://api.spotify.com/v1/me',
+                //     headers: {'Authorization': 'Bearer ' + access_token},
+                //     json: true
+                // };
+                //
+                // // use the access token to access the Spotify Web API
+                // request.get(options, function (error, response, body) {
+                //     // console.log(body);
+                // });
+
+
+                //things we need to request
+                /*
+                Top artists [100] (long term?) {genres, id, name, popularity?}
+                'https://api.spotify.com/v1/me/top/artists'
+                qs: {limit: 50, offset: i * limit}
+                */
+                var topOptions = {
+                    url: 'https://api.spotify.com/v1/me/top/artists',
+                    headers: {'Authorization': 'Bearer ' + access_token},
+                    qs: {limit: 50, offset: 0},
+                    json: true
+                };
+                /*
+
+                Recent tracks [For past week or 500, whichever is second. Limit at a month] {played_at, track: {artists, id, name?}}
+                'https://api.spotify.com/v1/me/player/recently-played'
+                qs: {limit: 50, before: curr_oldest}
+                */
+                var recentOptions = {
+                    url: 'https://api.spotify.com/v1/me/player/recently-played',
+                    headers: {'Authorization': 'Bearer ' + access_token},
+                    qs: {limit: 50},
+                    json: true
+                };
+
+                var helperOptions = {
+                    url: 'https://api.spotify.com/v1/',
+                    headers: {'Authorization': 'Bearer ' + access_token},
+                    qs: {},
+                    json: true
+                };
+                /*
+
+                This will be a lot of calls:
+                Related artists [for each artist] for each {genres, id, name, popularity?}
+                'https://api.spotify.com/v1/artists/{id}/related-artists'
+
+                audio-features [for each 100 tracks] {valence}
+                'https://api.spotify.com/v1/audio-features'
+                qs: {ids: [spotify_ids]}
+                 */
+
+                var relatedOptions = {
+                    url: 'https://api.spotify.com/v1/artists/{id}/related-artists',
+                    header: {'Authorization': 'Bearer ' + access_token},
+                    json: true
+                };
+
+
+                var recents = [];  // fields: time:DateTime str, artist:str, track:str
+                var artistsGraph = {"nodes": [], "links": []}; // node fields: id:str, name:str; link fields: source:str, target:str
+                var tracks = {};           // fields: name:str, valence:str representing float
+                var topArtists = {};      // fields: name:str, genres:[str]
+                var recentArtists = {};   // fields: name:str, genres:[str]
+                var relatedArtists = {};  // fields: name:str, genres:[str]
+
+                var artistsInfo;
+                var features;
+
+                /*
+                for each requested top_artist:
+                    artists_graph.nodes.push({id, name})
+                    top_artists[id] = {name, genres, popularity?}
+                */
+                function requestTopArtists(options) {
+                    request.get(options, function (error, response, body) {
+                        if (error) {
+                            console.log(error);
+                            requestTopArtists(options);
+                        } else if (response.statusCode === 429) {
+                            setTimeout(() => requestTopArtists(options), 1000 * parseInt(response.headers['retry-after']));
+                        } else if (response.statusCode === 200) {
+                            for (var artistObject of body.items) {
+                                artistsGraph.nodes.push({id: artistObject.id, name: artistObject.name});
+                                topArtists[artistObject.id] = {name: artistObject.name, genres: artistObject.genres};
+                            }
+                            if (options.qs.offset === 0) {
+                                options.qs.offset += 50;
+                                requestTopArtists(options);
+                            } else { // move on
+                                requestRecents(recentOptions, 0);
+                            }
+                        }
+                    });
                 }
-                // if (user_data_options.qs.offset >= 500) {
-                //     return;
-                // }
-                user_data_options.qs.offset += 50;
-                setTimeout(test_this, 1000 * test_num);
-
-                // console.log(response);
-
-                // for (var item of body.items) {
-                //
-                //   if (type === 'tracks') {
-                //       var artists = [];
-                //       for (var i = 0; i < item.artists.length; i++) {
-                //           artists.push(item.artists[i].name);
-                //       }
-                //       console.log(artists.join(', '));
-                //   }
-                //
-                //   console.log(item.name);
-                //   console.log(item.popularity);
-                //   console.log();
-                // }
-            });
-        }
-        test_this();
 
 
-        // we can also pass the token to the browser to make requests from there
-        res.redirect('/#' +
-          querystring.stringify({
-            access_token: access_token,
-            refresh_token: refresh_token
-          }));
-      } else {
-        res.redirect('/#' +
-          querystring.stringify({
-            error: 'invalid_token'
-          }));
-      }
-    });
-  }
+                /*
+
+                artists_info = request.artist(track.artists)
+                features = request.features(recent_tracks)
+                for each requested recent_track:
+                    recents.push({time: played_at, artist: track.artists, track: track.name})
+                    for artist, info, feature in zip(track.artists, artists_info, features):
+                        recent_artists[artist] = {name: artist.name, genres: info.genres}
+                        artists_graph.nodes.push({artist.id, artist.name})
+                    for track in tracks:
+                        tracks[track.id] = {track.name, valence: feature.valence}
+                */
+                function requestHelper(ids, helperType) {
+                    helperOptions.qs = {ids: ids};
+                    helperOptions.url += helperType;
+                    var helperInfo = [];
+                    request.get(helperOptions, function (error, response, body) {
+                        if (error) {
+                            console.log(error);
+                            requestHelper(ids, helperType);
+                        } else if (response.statusCode === 429) {
+                            setTimeout(() => requestHelper(ids, helperType), 1000 * parseInt(response.headers['retry-after']))
+                        } else {
+                            if (helperType === 'artists') {
+                                artistsInfo = body.items;
+                            } else {
+                                features = body.items;
+                            }
+                            return body.items;
+                        }
+                    });
+                }
+
+                function requestRecents(options, iterations) {
+                    request.get(options, function (error, response, body) {
+                        if (error) {
+                            console.log(error);
+                            requestRecents(options, iterations);
+                        } else if (response.statusCode === 429) {
+                            setTimeout(() => requestRecents(options), 1000 * parseInt(response.headers['retry-after']));
+                        } else if (response.statusCode === 200) {
+                            requestHelper(body.items.map(e => e.track.artists[0].id), 'artists');
+                            requestHelper(body.items.map(e => e.track.id), 'audio-features');
+
+                            for (var i = 0; i < body.items.length; i++) {
+                                var currItem = body.items[i];
+                                recents.push({
+                                    time: currItem.played_at,
+                                    artist: currItem.track.artists[0].id,
+                                    track: currItem.track.id
+                                });
+                                recentArtists[currItem.track.artists[0].id] = {name: currItem.track.artists[0].name};  //, genres: artistsInfo[i].genres};
+                                artistsGraph.nodes.push({
+                                    id: currItem.track.artists[0].id,
+                                    name: currItem.track.artists[0].name
+                                });
+                                tracks[currItem.track.id] = {name: currItem.track.name};  //, valence: features[i].valence}
+                            }
+
+                            if (iterations < 10 && body.next.cursors !== undefined) {
+                                options.qs = {limit: 50, before: body.next.cursors.before};
+                                requestRecents(options, iterations + 1);
+                            } else {  // move on
+                                requestAllRelatedArtists();
+                            }
+                        } else {
+                            requestRecents(options);
+                        }
+                    });
+                }
+
+                /*
+
+                for each artist in top_artists U recent_artists:
+                    relateds = request.related_artists(artists)
+                    for related in relateds:
+                        if related not in top_artists U recent_artists:
+                            related_artists[related.id] = {related.name, related.genres}
+                        artist_graph.links.push({source:artist, target:related})
+
+                 */
+                function requestAllRelatedArtists() {
+                    function union(setA, setB) {
+                        var _union = new Set(setA);
+                        for (var elem of setB) {
+                            _union.add(elem);
+                        }
+                        return _union;
+                    }
+
+                    requestRelated(Array.from(union(Object.keys(recentArtists), Object.keys(topArtists))), 0, artistsGraph);
+                }
+
+                function requestRelated(allArtistIds, iteration, artistsGraphC) {
+                    relatedOptions.url = 'https://api.spotify.com/v1/artists/' + allArtistIds[iteration] + '/related-artists';
+                    request.get(relatedOptions, function (error, response, body) {
+                        if (error) {
+                            console.log(error);
+                            requestRelated(allArtistIds, iteration, artistsGraphC);
+                        } else if (response.statusCode === 429) {
+                            setTimeout(() => requestRelated(allArtistIds, iteration, artistsGraphC), 1000 * parseInt(response.headers['retry-after']));
+                        } else if (response.statusCode === 200) {
+                            for (var item of body.artists) {
+                                if (!(item.id in topArtists || item.id in recentArtists)) {
+                                    relatedArtists[item.id] = {name: item.name, genres: item.genres};
+                                    artistsGraphC.nodes.push({id: item.id, name: item.name});
+                                }
+                                if (!(artistsGraphC.links.includes({
+                                    source: item.id,
+                                    target: allArtistIds[iteration]
+                                }))) {  // should never include the opposite
+                                    artistsGraphC.links.push({source: allArtistIds[iteration], target: item.id});
+                                }
+                            }
+
+                            if (iteration === allArtistIds.length - 1) {
+                                res.redirect('/#' +
+                                    querystring.stringify({
+                                        access_token: access_token,
+                                        refresh_token: refresh_token,
+                                        recents: JSON.stringify(recents)
+                                        // artistsGraph: JSON.stringify(artistsGraphC),
+                                        // tracks: JSON.stringify(tracks),
+                                        // topArtists: JSON.stringify(topArtists),
+                                        // recentArtists: JSON.stringify(recentArtists),
+                                        // relatedArtists: JSON.stringify(relatedArtists)
+                                    }));
+                            } else {
+                                requestRelated(allArtistIds, iteration + 1, artistsGraphC);
+                            }
+                        } else if (response.statusCode === 401) {
+                            var authOptions = {
+                                url: 'https://accounts.spotify.com/api/token',
+                                headers: {'Authorization': 'Basic ' + (new Buffer(client_id + ':' + client_secret).toString('base64'))},
+                                form: {
+                                    grant_type: 'refresh_token',
+                                    refresh_token: refresh_token
+                                },
+                                json: true
+                            };
+
+                            request.post(authOptions, function (error, response, body) {
+                                if (!error && response.statusCode === 200) {
+                                    relatedOptions.headers = {'Authorization': 'Bearer ' + body.access_token};
+                                    access_token = body.access_token;
+                                    requestRelated(allArtistIds, iteration, artistsGraphC);
+                                }
+                            });
+
+
+                        } else {
+                            console.log('we screwed up');
+                        }
+                    });
+                }
+
+
+                function test_this() {
+                    request.get(user_data_options, function (error, response, body) {
+                        console.log(response.statusCode);
+                        var test_num = 0;
+                        if (response.statusCode === 429) {
+                            console.log(response.headers['retry-after']);
+                            test_num = Number(response.headers['retry-after']);
+                            // sleep(response.headers['retry-after']); // need to work on sleep func
+                        }
+                        // if (user_data_options.qs.offset >= 500) {
+                        //     return;
+                        // }
+                        user_data_options.qs.offset += 50;
+                        setTimeout(test_this, 1000 * test_num);
+
+                        // console.log(response);
+
+                        // for (var item of body.items) {
+                        //
+                        //   if (type === 'tracks') {
+                        //       var artists = [];
+                        //       for (var i = 0; i < item.artists.length; i++) {
+                        //           artists.push(item.artists[i].name);
+                        //       }
+                        //       console.log(artists.join(', '));
+                        //   }
+                        //
+                        //   console.log(item.name);
+                        //   console.log(item.popularity);
+                        //   console.log();
+                        // }
+                    });
+                }
+
+                // test_this();
+                requestTopArtists(topOptions);
+
+                // we can also pass the token to the browser to make requests from there
+                // res.redirect('/#' +
+                //     querystring.stringify({
+                //         access_token: access_token,
+                //         refresh_token: refresh_token
+                //     }));
+            } else {
+                res.redirect('/#' +
+                    querystring.stringify({
+                        error: 'invalid_token'
+                    }));
+            }
+        });
+    }
 });
 
-app.get('/refresh_token', function(req, res) {
+app.get('/refresh_token', function (req, res) {
 
-  // requesting access token from refresh token
-  var refresh_token = req.query.refresh_token;
-  var authOptions = {
-    url: 'https://accounts.spotify.com/api/token',
-    headers: { 'Authorization': 'Basic ' + (new Buffer(client_id + ':' + client_secret).toString('base64')) },
-    form: {
-      grant_type: 'refresh_token',
-      refresh_token: refresh_token
-    },
-    json: true
-  };
+    // requesting access token from refresh token
+    var refresh_token = req.query.refresh_token;
+    var authOptions = {
+        url: 'https://accounts.spotify.com/api/token',
+        headers: {'Authorization': 'Basic ' + (new Buffer(client_id + ':' + client_secret).toString('base64'))},
+        form: {
+            grant_type: 'refresh_token',
+            refresh_token: refresh_token
+        },
+        json: true
+    };
 
-  request.post(authOptions, function(error, response, body) {
-    if (!error && response.statusCode === 200) {
-      var access_token = body.access_token;
-      res.send({
-        'access_token': access_token
-      });
-    }
-  });
+    request.post(authOptions, function (error, response, body) {
+        if (!error && response.statusCode === 200) {
+            var access_token = body.access_token;
+            res.send({
+                'access_token': access_token
+            });
+        }
+    });
 });
 
 console.log('Listening on 8888');
