@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
-<body>
-<meta charset="utf-8">
+<head>
+  <meta charset="utf-8">
+</head>
 <style>
-
     .area {
         fill: url("#temperature-gradient");
         clip-path: url(#clip);
@@ -23,12 +23,15 @@
     }
 
 </style>
+<body>
+
+<div id="svg-container"></div>
 <!--<svg width="960" height="500"></svg>-->
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
 <!--<script src="js/d3.v4.min.js"></script>-->
 <script>
-    var svg = d3.select("body").append("svg").attr("width", 1160).attr("height", 600),
+    var svg = d3.select("#svg-container").append("svg").attr("width", 1160).attr("height", 600),
         margin = {top: 20, right: 20, bottom: 110, left: 40},
         margin2 = {top: 430, right: 20, bottom: 30, left: 40},
         width = +svg.attr("width") - margin.left - margin.right,
@@ -36,6 +39,7 @@
         height2 = +svg.attr("height") - margin2.top - margin2.bottom;
 
     // svg = svg.attr("viewBox", [-width / 2, -height / 2, width, height]);
+
 
     var simulation = d3.forceSimulation()
         .force("link", d3.forceLink().id(function (d) {
@@ -116,6 +120,14 @@
         return new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDay(),
             date.getHours(), date.getMinutes(), date.getSeconds(), date.getMilliseconds());
     }
+
+
+    let url = 
+    var request = new XMLHttpRequest();
+    request.open('GET', url);
+    request.responseType = 'text';
+
+
 
     d3.json("data.json", function (error, data) {
         if (error) throw error;
@@ -382,6 +394,7 @@
     function update_graph(data, relatedToId) {  //data is list of {time:bucket_timestamp, arr:[recents objects]} objects
         //maybe add in an extra parameter of related? related will already be in graph, but can allow it to
         // be filtered through, as it will never be otherwise
+        console.log(related)
 
         simulation.stop();
         //use graph, link, node

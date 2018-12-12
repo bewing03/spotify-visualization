@@ -326,7 +326,7 @@ app.get('/data', function (req, res) {
                         artistsGraphC.links.push({source: allArtistIds[iteration], target: item.id});
                     }
                 }
-
+                
                 if (iteration === allArtistIds.length - 1) {
                     res.send(
                         {
