@@ -109,6 +109,7 @@
     var gradient_offsets = [];
     var recent_artists;
     var curr_buckets;
+    var relatedArtists = {};
 
     function parseToHours(date) {
         var currentDate = Date.now();
@@ -123,6 +124,7 @@
         graph = data.artists_graph;
         var all_links = graph.links;
         recent_artists = data.recent_artists;
+        relatedArtists = data.related_artists;
 
         simulation
             .nodes(graph.nodes)
@@ -157,7 +159,7 @@
                 update_graph(curr_buckets);
             })
             .on("click", function (d) {
-                update_graph(curr_buckets, recent_artists[d.id].related); //gives id of node?
+                update_graph(curr_buckets, d.id); //gives id of node?
             });
 
         function ticked() {
@@ -377,7 +379,7 @@
     //     //     .call(zoom);
     // });
 
-    function update_graph(data, related = []) {  //data is list of {time:bucket_timestamp, arr:[recents objects]} objects
+    function update_graph(data, relatedToId) {  //data is list of {time:bucket_timestamp, arr:[recents objects]} objects
         //maybe add in an extra parameter of related? related will already be in graph, but can allow it to
         // be filtered through, as it will never be otherwise
 
@@ -393,22 +395,36 @@
         //add in top artists to all_recent_artists
         //filter
         const new_links = graph.links.filter(function (d) {
-            return (all_recent_artists.includes(d.source.id) || related.includes(d.source.id))
-                && (all_recent_artists.includes(d.target.id) || related.includes(d.target.id))
+            return all_recent_artists.includes(d.source.id) && all_recent_artists.includes(d.target.id)
         });
         const new_nodes = graph.nodes.filter(function (d) {
             return all_recent_artists.includes(d.id);
         });
-        const new_recents = graph.nodes.filter(function (d) {
-            return related.includes(d.id);
+        const related_links = graph.links.filter(function (d) {
+            return (relatedToId === d.source.id || relatedToId === d.target.id) && !(new_links.includes(d));
+        });
+        var related_ids = [];
+        for (var related_link of related_links) {
+            if (relatedToId === related_link.source.id) {
+                related_ids.push(related_link.target.id);
+            } else {
+                related_ids.push(related_link.source.id);
+            }
+        }
+        const related_nodes = graph.nodes.filter(function (d) {
+            return related_ids.includes(d.id) && !(new_nodes.includes(d));
         });
 
         // node = svg.select("g").selectAll("circle").data(new_nodes);
+        if (!(relatedToId in relatedArtists)) {
+            new_nodes.push(...related_nodes);
+        }
         node = node.data(new_nodes, function (d) {
             return d.id;
         });
         node.exit().remove();
-        node = node.enter().append("circle").merge(node)
+        var nodeEnter = node.enter().append("g");
+        node = nodeEnter.append("circle").merge(node)
             .attr("r", 5)
             .attr("fill", color)
             .call(drag(simulation))
@@ -418,7 +434,16 @@
             })
             .on("mouseout", function (d) {
                 d3.selectAll("circle").attr("opacity", 1.0);
+            })
+            .on("click", function (d) {
+                update_graph(curr_buckets, d.id); //gives id of node?
             });
+        nodeEnter.append("text")
+            .attr("dx", function (d) {return 100 + Math.random() * 500})
+            .attr("dy", 100)
+            .text("hello")
+            .attr('color', 'black')
+            .attr('font-size', '20px');//function(d) {return -20}).text("hello");
 
         //Something like below could add text boxes on click
         //reference http://bl.ocks.org/ChrisJamesC/4474971
@@ -434,6 +459,9 @@
         //     .call(drag(simulation));
 
         // link = svg.select("g").selectAll("line").data(new_links);
+        if (!(relatedToId in relatedArtists)) {
+            new_links.push(...related_links); //related
+        }
         link = link.data(new_links, function (d) {
             return d.source.id + d.target.id;
         });
