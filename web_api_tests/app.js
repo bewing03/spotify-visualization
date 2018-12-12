@@ -199,7 +199,9 @@ app.get('/data', function (req, res) {
                 setTimeout(() => requestTopArtists(options), 1000 * parseInt(response.headers['retry-after']));
             } else if (response.statusCode === 200) {
                 for (var artistObject of body.items) {
-                    artistsGraph.nodes.push({id: artistObject.id, name: artistObject.name});
+                    if (!({id: artistObject.id, name: artistObject.name} in artistsGraph)) {
+                        artistsGraph.nodes.push({id: artistObject.id, name: artistObject.name});
+                    }
                     topArtists[artistObject.id] = {name: artistObject.name, genres: artistObject.genres};
                 }
                 if (options.qs.offset === 0) {
@@ -264,10 +266,12 @@ app.get('/data', function (req, res) {
                         track: currItem.track.id
                     });
                     recentArtists[currItem.track.artists[0].id] = {name: currItem.track.artists[0].name};  //, genres: artistsInfo[i].genres};
-                    artistsGraph.nodes.push({
-                        id: currItem.track.artists[0].id,
-                        name: currItem.track.artists[0].name
-                    });
+                    if (!({id: currItem.track.artists[0].id, name: currItem.track.artists[0].name} in artistsGraph)) {
+                        artistsGraph.nodes.push({
+                            id: currItem.track.artists[0].id,
+                            name: currItem.track.artists[0].name
+                        });
+                    }
                     tracks[currItem.track.id] = {name: currItem.track.name};  //, valence: features[i].valence}
                 }
 
