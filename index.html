@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
+    <meta charset="utf-8">
 </head>
 <style>
     .area {
@@ -22,6 +22,19 @@
         fill-opacity: 0;
     }
 
+    div.tooltip {
+        position: absolute;
+        text-align: center;
+        width: 120px;
+        height: 28px;
+        padding: 2px;
+        font: 12px sans-serif;
+        background: lightsteelblue;
+        border: 0px;
+        border-radius: 8px;
+        pointer-events: none;
+    }
+
 </style>
 <body>
 
@@ -31,6 +44,10 @@
 <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
 <!--<script src="js/d3.v4.min.js"></script>-->
 <script>
+    var div = d3.select("body").append("div")
+        .attr("class", "tooltip")
+        .style("opacity", 0);
+
     var svg = d3.select("#svg-container").append("svg").attr("width", 1160).attr("height", 600),
         margin = {top: 20, right: 20, bottom: 110, left: 40},
         margin2 = {top: 430, right: 20, bottom: 30, left: 40},
@@ -121,14 +138,6 @@
             date.getHours(), date.getMinutes(), date.getSeconds(), date.getMilliseconds());
     }
 
-
-    let url = 
-    var request = new XMLHttpRequest();
-    request.open('GET', url);
-    request.responseType = 'text';
-
-
-
     d3.json("data.json", function (error, data) {
         if (error) throw error;
 
@@ -165,12 +174,20 @@
             .on("mouseover", function (elem) {
                 d3.selectAll("circle").attr("opacity", 0.2);
                 d3.select(this).attr("opacity", 1.0);
+                div.style("opacity", 0.9).style("height", "14px");
+                div.html(elem.name)
+                    .style("left", (d3.event.pageX + 15) + "px")
+                    .style("top", (d3.event.pageY - 28) + "px")
+                    .style("width", elem.name.length * 7 + "px");
             })
             .on("mouseout", function (d) {
                 d3.selectAll("circle").attr("opacity", 1.0);
+                div.style("opacity", 0);
+
                 update_graph(curr_buckets);
             })
             .on("click", function (d) {
+                div.style("opacity", 0);
                 update_graph(curr_buckets, d.id); //gives id of node?
             });
 
@@ -394,8 +411,6 @@
     function update_graph(data, relatedToId) {  //data is list of {time:bucket_timestamp, arr:[recents objects]} objects
         //maybe add in an extra parameter of related? related will already be in graph, but can allow it to
         // be filtered through, as it will never be otherwise
-        console.log(related)
-
         simulation.stop();
         //use graph, link, node
         //all_links = graph.links
@@ -444,15 +459,25 @@
             .on("mouseover", function (elem) {
                 d3.selectAll("circle").attr("opacity", 0.2);
                 d3.select(this).attr("opacity", 1.0);
+                div.style("opacity", 0.9).style("height", "14px");
+                div.html(elem.name)
+                    .style("left", (d3.event.pageX + 15) + "px")
+                    .style("top", (d3.event.pageY - 28) + "px")
+                    .style("width", elem.name.length * 7 + "px");
             })
             .on("mouseout", function (d) {
                 d3.selectAll("circle").attr("opacity", 1.0);
+                div.style("opacity", 0);
+                update_graph(curr_buckets);
             })
             .on("click", function (d) {
+                div.style("opacity", 0);
                 update_graph(curr_buckets, d.id); //gives id of node?
             });
         nodeEnter.append("text")
-            .attr("dx", function (d) {return 100 + Math.random() * 500})
+            .attr("dx", function (d) {
+                return 100 + Math.random() * 500
+            })
             .attr("dy", 100)
             .text("hello")
             .attr('color', 'black')
