@@ -451,8 +451,7 @@
             return d.id;
         });
         node.exit().remove();
-        var nodeEnter = node.enter().append("g");
-        node = nodeEnter.append("circle").merge(node)
+        node = node.enter().append("circle").merge(node)
             .attr("r", 5)
             .attr("fill", color)
             .call(drag(simulation))
@@ -468,7 +467,6 @@
             .on("mouseout", function (d) {
                 d3.selectAll("circle").attr("opacity", 1.0);
                 div.style("opacity", 0);
-                update_graph(curr_buckets);
             })
             .on("click", function (d) {
                 div.style("opacity", 0);
@@ -535,11 +533,6 @@
         context.select(".brush").call(brush.move, x.range().map(t.invertX, t));
     }
 
-    function type(d) {
-        d.date = parseDate(d.date);
-        d.price = +d.price;
-        return d;
-    }
 
     function addGradient(gradientList) {
         svg.append("linearGradient")

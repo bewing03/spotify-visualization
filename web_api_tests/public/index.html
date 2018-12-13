@@ -31,7 +31,7 @@
             position: absolute;
             text-align: center;
             width: 120px;
-            height: 28px;
+            height: 32px;
             padding: 2px;
             font: 12px sans-serif;
             background: lightsteelblue;
@@ -44,7 +44,7 @@
 </head>
 
 <body>
-<div class="container">
+<div class="container-fluid" id="login-container">
     <div id="login">
         <h1>This is an example of the Authorization Code flow</h1>
         <a href="/login" class="btn btn-primary">Log in with Spotify</a>
@@ -173,6 +173,29 @@
                             let currBuckets = [];
                             let gradientOffsets = [];
 
+                            const allGenres = {
+                                electronic: ["dub", "dubstep", "edm", "electro", "electronic", "progressive-house", "detroit-techno",
+                                    "deep-house", "post-dubstep", "new-age", "techno", "trance", "hardstyle", "house", "idm",
+                                    "minimal-techno", "drum-and-bass"],
+                                children: ["kids", "holidays", "disney", "children", "soundtracks", "movies", "afrobeat", "show-tunes", "comedy"],
+                                alternative: ["alt-rock", "alternative", "emo", "indie", "acoustic", "bossanova"],
+                                folk: ["folk", "singer-songwriter", "songwriter", "bluegrass"],
+                                metal: ["rock", "rock-n-roll", "hard-rock", "hardcore", "death-metal", "heavy-metal", "black-metal", "metal",
+                                    "metal-misc", "metalcore", "goth", "guitar", "grindcore", "hard-rock", "grunge", "psych-rock", "punk",
+                                    "punk-rock", "garage", "grunge", "rockabilly", "industrial"],
+                                world: ["forro", "mpb", "gospel", "j-dance", "j-idol", "j-pop", "j-rock", "chicago-house", "latin", "latino",
+                                    "malay", "k-pop", "brazil", "mandopop", "indian", "salsa", "samba", "philippines-opm", "sertanejo",
+                                    "anime", "pagode", "iranian", "dancehall", "french", "swedish", "tango", "german", "british", "cantopop",
+                                    "reggae", "reggaeton", "world-music", "turkish", "spanish", "ska"],
+                                pop: ["dance", "synth-pop", "pop", "pop-film", "power-pop", "party", "club", "happy", "indie-pop", "summer",
+                                    "disco"],
+                                hiphop: ["trip-hop", "r-n-b", "hip-hop", "work-out", "breakbeat"],
+                                jazz: ["blues", "funk", "jazz", "soul", "groove"],
+                                country: ["country", "road-trip", "honky-tonk"],
+                                chill: ["classical", "opera", "piano"],
+                                classical: ["ambient", "chill", "study", "new-age", "romance", "sad", "sleep", "new-release", "rainy-day"]
+                            };
+
                             $('#login').hide();
                             $('#user-profile').hide();
                             $('#oauth').hide();
@@ -183,26 +206,49 @@
                                 .attr("class", "tooltip")
                                 .style("opacity", 0);
 
-                            var svg = d3.select("#loggedin").append("svg").attr("width", 1000).attr("height", 800),
-                                margin = {top: 430, right: 20, bottom: 30, left: 40},
+                            var docWidth = window.innerWidth,
+                                docHeight = window.innerHeight;
+
+                            var svg = d3.select("#loggedin").append("svg").attr("width", docWidth).attr("height", docHeight),
+                                margin = {top: 30, right: 40, bottom: 30, left: 40},
                                 width = +svg.attr("width") - margin.left - margin.right,
                                 height = +svg.attr("height") - margin.top - margin.bottom;
+
+                            var graphHeight = 0.7 * height,
+                                contextHeight = 0.3 * height;
+
+                            svg.append("text")
+                                .attr("transform", "rotate(-90)")
+                                .attr("y", margin.left / 1.7)
+                                .attr("x", 0 - graphHeight - (contextHeight / 1.5))
+                                .style("text-anchor", "middle")
+                                .style("font-size", "10pt")
+                                .text("Number of songs listened to");
+
+                            svg.append("text")
+                                .attr("y", margin.top / 1.5)
+                                .attr("x", margin.left + (width / 2))
+                                .style("text-anchor", "middle")
+                                .style("font-size", "15pt")
+                                .text("Related artists");
+
 
                             var simulation = d3.forceSimulation()
                                 .force("link", d3.forceLink().id(d => d.id))
                                 .force("charge", d3.forceManyBody())
                                 .force("x", d3.forceX())
                                 .force("y", d3.forceY())
-                                .force("center", d3.forceCenter(width / 2, height / 2));
+                                .force("center", d3.forceCenter(width / 2, graphHeight / 2));
 
                             var x = d3.scaleTime().range([0, width]),
                                 x2 = d3.scaleTime().range([0, width]),
-                                y = d3.scaleLinear().range([height, 0]);
-
-                            var xAxis2 = d3.axisBottom(x2);
+                                y = d3.scaleLinear().range([contextHeight, 0]);
+                            var ticks = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24];
+                            var times = ["Midnight", "1a", "2a", "3a", "4a", "5a", "6a", "7a", "8a", "9a", "10a", "11a", "Noon", "1p", "2p", "3p", "4p", "5p", "6p", "7p", "8p", "9p", "10p", "11p", "Midnight"];
+                            var xAxis2 = d3.axisBottom(x2).ticks(12, d3.timeFormat("%I:%M"));//.tickFormat(d3.timeFormat("%I %p"));
 
                             var brush = d3.brushX()
-                                .extent([[0, 0], [width, height]])
+                                .extent([[0, -5], [width, contextHeight]])
                                 .on("brush end", brushed);
 
                             var area = d3.area()
@@ -210,7 +256,7 @@
                                 .x(function (d) {
                                     return x2(d.time);
                                 })
-                                .y0(height)
+                                .y0(contextHeight)
                                 .y1(function (d) {
                                     return y(d.arr.length);
                                 });
@@ -223,7 +269,7 @@
 
                             var context = svg.append("g")
                                 .attr("class", "context")
-                                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+                                .attr("transform", "translate(" + margin.left + "," + (margin.top + graphHeight) + ")");
 
                             function parseToHours(date) {
                                 let currentDate = Date.now();
@@ -287,13 +333,16 @@
                                 .attr("fill", color)
                                 .call(drag(simulation))
                                 .on("mouseover", function (d) {
+                                    var artist = topArtists[d.id] || recentArtists[d.id] || relatedArtists[d.id];
+                                    var genre = artist.genres[0] || "None";
+
                                     d3.selectAll("circle").attr("opacity", 0.2);
                                     d3.select(this).attr("opacity", 1.0);
-                                    div.style("opacity", 0.9).style("height", "14px");
-                                    div.html(d.name)
+                                    div.style("opacity", 0.9).style("height", "32px");
+                                    div.html(d.name + "</br>" + genre)
                                         .style("left", (d3.event.pageX + 15) + "px")
                                         .style("top", (d3.event.pageY - 28) + "px")
-                                        .style("width", d.name.length * 7 + "px");
+                                        .style("width", Math.max(d.name.length, genre.length) * 8 + "px");
                                 })
                                 .on("mouseout", function (d) {
                                     d3.selectAll("circle").attr("opacity", 1.0);
@@ -321,8 +370,13 @@
                             let next_index = 0;
                             for (let i = Date.parse("1970-01-01T00:00:00.000Z");
                                  i <= Date.parse("1970-01-02T00:00:00.000Z");
-                                 i += Date.parse("1970-01-01T03:00:00.000Z")) {
+                                 i += Date.parse("1970-01-01T01:00:00.000Z")) {
+                                // for (let i = Date.now() - Date.parse("1970-02-01T00:00:00.000Z");
+                                //      i <= Date.now();
+                                //      i += Date.parse("1970-01-01T01:00:00.000Z")) {
                                 next_index = recents.findIndex(function (elem, index) {
+                                    // var currDate = new Date(this.i);
+                                    // return this.next_index <= index && this.i <= Date.parse(currDate.getFullYear() + "-" + currDate.getMonth() + "-" + currDate.getDate() + elem.time.slice(elem.time.indexOf('T'))); // i <= Date.parse(elem);
                                     return this.next_index <= index && this.i <= Date.parse("1970-01-01" + elem.time.slice(elem.time.indexOf('T'))); // i <= Date.parse(elem);
                                 }, {'i': i, 'next_index': next_index});
                                 if (next_index === -1) next_index = recents.length;
@@ -332,6 +386,7 @@
                                 });
                                 last_index = next_index;
 
+                                // if (i === Date.now()) buckets[0].arr = buckets[buckets.length - 1].arr;
                                 if (i === Date.parse("1970-01-02T00:00:00.000Z")) buckets[0].arr = buckets[buckets.length - 1].arr;
                             }
 
@@ -348,7 +403,9 @@
 
                             addGradient(gradientOffsets);
 
-                            x.domain([new Date("Fri Jan 01 1970 0:00:00"), new Date("Fri Jan 02 1970 0:00:00")]);
+                            // x.domain([new Date(Date.now() - Date.parse("1970-02-01T00:00:00.000Z")), new Date(Date.now())]);
+                            x.domain([new Date("1970-01-01T00:00:00.000"),
+                                new Date("1970-01-02T00:00:00.000")]);
                             x2.domain(x.domain());
                             y.domain([0, d3.max(buckets, d => d.arr.length)]);
 
@@ -359,7 +416,7 @@
 
                             context.append("g")
                                 .attr("class", "axis axis--x")
-                                .attr("transform", "translate(0," + height + ")")
+                                .attr("transform", "translate(0," + contextHeight + ")")
                                 .call(xAxis2);
 
                             context.append("g")
@@ -368,6 +425,27 @@
                                 .call(brush.move, x.range());
 
                             function color(d) {  // coloring by genre
+                                var genreColors = {
+                                    'electronic': 'green',
+                                    'children': 'red',
+                                    'alternative': 'brown',
+                                    'world': 'olive',
+                                    'metal': 'black',
+                                    'pop': 'purple',
+                                    'hiphop': 'teal',
+                                    'jazz': 'blue',
+                                    'country': 'orange',
+                                    'chill': 'aqua',
+                                    'classical': 'yellow'
+                                };
+
+                                var artist = topArtists[d.id] || recentArtists[d.id] || relatedArtists[d.id];
+
+                                for (var genre of Object.keys(genreColors)) {
+                                    if (allGenres[genre].includes(artist.genres[0])) {
+                                        return genreColors[genre];
+                                    }
+                                }
                                 return 'black'
                             }
 
@@ -416,13 +494,16 @@
                                     .attr("fill", color)
                                     .call(drag(simulation))
                                     .on("mouseover", function (elem) {
+                                        var artist = topArtists[elem.id] || recentArtists[elem.id] || relatedArtists[elem.id];
+                                        var genre = artist.genres[0] || "None";
+
                                         d3.selectAll("circle").attr("opacity", 0.2);
                                         d3.select(this).attr("opacity", 1.0);
-                                        div.style("opacity", 0.9).style("height", "14px");
-                                        div.html(elem.name)
+                                        div.style("opacity", 0.9).style("height", "32px");
+                                        div.html(elem.name + "</br>" + genre)
                                             .style("left", (d3.event.pageX + 15) + "px")
                                             .style("top", (d3.event.pageY - 28) + "px")
-                                            .style("width", elem.name.length * 7 + "px");
+                                            .style("width", Math.max(elem.name.length, genre.length) * 8 + "px");
                                     })
                                     .on("mouseout", function (d) {
                                         d3.selectAll("circle").attr("opacity", 1.0);
