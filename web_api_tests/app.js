@@ -182,9 +182,6 @@ app.get('/data', function (req, res) {
     var recentArtists = {};   // fields: name:str, genres:[str]
     var relatedArtists = {};  // fields: name:str, genres:[str]
 
-    var artistsInfo;
-    var features;
-
     /*
     for each requested top_artist:
         artists_graph.nodes.push({id, name})
@@ -228,7 +225,8 @@ app.get('/data', function (req, res) {
             tracks[track.id] = {track.name, valence: feature.valence}
     */
     function requestHelper(ids, helperType) {
-        helperOptions.qs = {ids: ids};
+        helperOptions.url = "https://api.spotify.com/v1/"
+        helperOptions.qs = {ids: ids.toString()};
         helperOptions.url += helperType;
         request.get(helperOptions, function (error, response, body) {
             if (error) {
@@ -237,12 +235,7 @@ app.get('/data', function (req, res) {
             } else if (response.statusCode === 429) {
                 setTimeout(() => requestHelper(ids, helperType), 1000 * parseInt(response.headers['retry-after']))
             } else {
-                if (helperType === 'artists') {
-                    artistsInfo = body.items;
-                } else {
-                    features = body.items;
-                }
-                return body.items;
+                return body.helperType;
             }
         });
     }
@@ -255,8 +248,8 @@ app.get('/data', function (req, res) {
             } else if (response.statusCode === 429) {
                 setTimeout(() => requestRecents(options), 1000 * parseInt(response.headers['retry-after']));
             } else if (response.statusCode === 200) {
-                requestHelper(body.items.map(e => e.track.artists[0].id), 'artists');
-                requestHelper(body.items.map(e => e.track.id), 'audio-features');
+                var artistsInfo = requestHelper(body.items.map(e => e.track.artists[0].id), 'artists');
+                var features = requestHelper(body.items.map(e => e.track.id), 'audio-features');
 
                 for (var i = 0; i < body.items.length; i++) {
                     var currItem = body.items[i];
@@ -330,7 +323,7 @@ app.get('/data', function (req, res) {
                         artistsGraphC.links.push({source: allArtistIds[iteration], target: item.id});
                     }
                 }
-                
+
                 if (iteration === allArtistIds.length - 1) {
                     res.send(
                         {
