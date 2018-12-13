@@ -14,6 +14,32 @@
             white-space: nowrap;
             width: 500px;
         }
+
+        .area {
+            fill: url("#temperature-gradient");
+            clip-path: url(#clip);
+        }
+
+        .selection {
+            fill: white;
+            stroke: black;
+            stroke-width: 2px;
+            fill-opacity: 0;
+        }
+
+        div.tooltip {
+            position: absolute;
+            text-align: center;
+            width: 120px;
+            height: 28px;
+            padding: 2px;
+            font: 12px sans-serif;
+            background: lightsteelblue;
+            border: 0px;
+            border-radius: 8px;
+            pointer-events: none;
+        }
+
     </style>
 </head>
 
@@ -105,20 +131,7 @@
             refresh_token = params.refresh_token,
             error = params.error;
 
-        // var recents = JSON.parse(params.recents || "{}");
-
-        // $.ajax({
-        //     url: '/data',
-        //     data: {
-        //         'access_token': access_token
-        //     }
-        // }).done(function (data) {
-        //     access_token = data.access_token;
-        //     oauthPlaceholder.innerHTML = oauthTemplate({
-        //         access_token: access_token,
-        //         refresh_token: refresh_token
-        //     });
-        // });
+        // let recents, artistsGraph, allLinks, tracks, topArtists, recentArtists, relatedArtists;
 
         if (error) {
             alert('There was an error during the authentication');
@@ -144,14 +157,21 @@
                                 'access_token': access_token,
                                 'refresh_token': refresh_token
                             }
-                        }).done(function (data) {
-                            recents = data.recents;
-                            var artistsGraph = data.artistsGraph;
-                            var tracks = data.tracks;
-                            console.log(tracks)
-                            var topArtists = data.topArtists;
-                            var recentArtists = data.recentArtists;
-                            var relatedArtists = data.relatedArtists;
+                        }).done(function (receivedData) {
+                            const recents = receivedData.recents.sort(function (a, b) {
+                                return Date.parse("1970-01-01" + a.time.slice(a.time.indexOf('T'))) - Date.parse("1970-01-01" + b.time.slice(b.time.indexOf('T')));
+                            });
+                            const artistsGraph = receivedData.artistsGraph;
+                            const tracks = receivedData.tracks;
+                            const topArtists = receivedData.topArtists;
+                            const recentArtists = receivedData.recentArtists;
+                            const relatedArtists = receivedData.relatedArtists;
+
+                            var link;
+                            var node;
+                            let buckets = [];
+                            let currBuckets = [];
+                            let gradientOffsets = [];
 
                             $('#login').hide();
                             $('#user-profile').hide();
@@ -159,43 +179,30 @@
                             $('#obtain-new-token').hide();
                             $('#loggedin').show();
 
+                            var div = d3.select("#loggedin").append("div")
+                                .attr("class", "tooltip")
+                                .style("opacity", 0);
+
                             var svg = d3.select("#loggedin").append("svg").attr("width", 1000).attr("height", 800),
-                                margin = {top: 20, right: 20, bottom: 110, left: 40},
-                                margin2 = {top: 430, right: 20, bottom: 30, left: 40},
+                                margin = {top: 430, right: 20, bottom: 30, left: 40},
                                 width = +svg.attr("width") - margin.left - margin.right,
-                                height = +svg.attr("height") - margin.top - margin.bottom,
-                                height2 = +svg.attr("height") - margin2.top - margin2.bottom;
+                                height = +svg.attr("height") - margin.top - margin.bottom;
 
                             var simulation = d3.forceSimulation()
-                                .force("link", d3.forceLink().id(function (d) {
-                                    return d.id;
-                                }))
+                                .force("link", d3.forceLink().id(d => d.id))
                                 .force("charge", d3.forceManyBody())
                                 .force("x", d3.forceX())
                                 .force("y", d3.forceY())
                                 .force("center", d3.forceCenter(width / 2, height / 2));
 
-                            var stored_data;
-                            var parseDate = d3.timeParse("%b %Y");
+                            var x = d3.scaleTime().domain([new Date("Fri Jan 01 1970 0:00:00"), new Date("Fri Jan 02 1970 0:00:00")]).range([0, width]),
+                                y = d3.scaleLinear().range([height, 0]);
 
-                            var x = d3.scaleTime().range([0, width]),
-                                x2 = d3.scaleTime().range([0, width]),
-                                y = d3.scaleLinear().range([height, 0]),
-                                y2 = d3.scaleLinear().range([height2, 0]);
-
-                            var xAxis = d3.axisBottom(x),
-                                xAxis2 = d3.axisBottom(x2),
-                                yAxis = d3.axisLeft(y);
+                            var xAxis = d3.axisBottom(x);
 
                             var brush = d3.brushX()
-                                .extent([[0, 0], [width, height2]])
-                                .on("brush end", brushed);
-
-                            var zoom = d3.zoom()
-                                .scaleExtent([1, Infinity])
-                                .translateExtent([[0, 0], [width, height]])
                                 .extent([[0, 0], [width, height]])
-                                .on("zoom", zoomed);
+                                .on("brush end", brushed);
 
                             var area = d3.area()
                                 .curve(d3.curveMonotoneX)
@@ -207,51 +214,23 @@
                                     return y(d.arr.length);
                                 });
 
-                            var area2 = d3.area()
-                                .curve(d3.curveMonotoneX)
-                                .x(function (d) {
-                                    return x2(d.time);
-                                })
-                                .y0(height2)
-                                .y1(function (d) {
-                                    return y2(d.arr.length);
-                                });
-
                             svg.append("defs").append("clipPath")
                                 .attr("id", "clip")
                                 .append("rect")
                                 .attr("width", width)
                                 .attr("height", height);
 
-                            // var focus = svg.append("g")
-                            //     .attr("class", "focus")
-                            //     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
                             var context = svg.append("g")
                                 .attr("class", "context")
-                                .attr("transform", "translate(" + margin2.left + "," + margin2.top + ")");
-
-                            var buckets;
-                            var graph;
-                            var link;
-                            var node;
-                            var gradient_offsets = [];
-                            var recent_artists;
-                            var curr_buckets;
+                                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
                             function parseToHours(date) {
-                                var currentDate = Date.now();
+                                let currentDate = Date.now();
                                 return new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDay(),
                                     date.getHours(), date.getMinutes(), date.getSeconds(), date.getMilliseconds());
                             }
 
-
-                            // d3.json("data.json", function (error, data) {
-                            //     if (error) throw error;
-
-
-
-                            console.log(data)
+                            console.log(receivedData);
                             drag = simulation => {
 
                                 function dragstarted(d) {
@@ -277,313 +256,184 @@
                                     .on("end", dragended);
                             };
 
+                            simulation
+                                .nodes(artistsGraph.nodes)
+                                .on("tick", ticked);
 
-                                var tracks = data.tracks;
-                                graph = data.artistsGraph;
-                                var all_links = graph.links;
-                                recent_artists = data.recentArtists;
+                            simulation.force("link")
+                                .links(artistsGraph.links);
 
-                                console.log(graph.links)
-                                console.log(graph.nodes)
+                            link = svg.append("g")
+                                .attr("stroke", "#999")
+                                .attr("stroke-opacity", 0.6)
+                                .selectAll("line")
+                                .data(artistsGraph.links.filter(function (d) {
+                                    return (d.source.id in recentArtists || d.source.id in topArtists)
+                                        && (d.target.id in recentArtists || d.target.id in topArtists)
+                                }))
+                                .enter().append("line")
+                                .attr("stroke-width", d => Math.sqrt(d.value));
 
-                                simulation
-                                    .nodes(graph.nodes)
-                                    .on("tick", ticked);
-
-                                simulation.force("link")
-                                    .links(graph.links);
-
-                                link = svg.append("g")
-                                    .attr("stroke", "#999")
-                                    .attr("stroke-opacity", 0.6)
-                                    .selectAll("line")
-                                    .data(graph.links.filter(function (d) {return (d.source.id in recentArtists || d.source.id in topArtists)
-                                    && (d.target.id in recentArtists || d.target.id in topArtists)}))
-                                    .enter().append("line")
-                                    .attr("stroke-width", d => Math.sqrt(d.value));
-
-                                    // links that aren't in related artists
-
-                                node = svg.append("g")
-                                    .attr("stroke", "#fff")
-                                    .attr("stroke-width", 1.5)
-                                    .selectAll("circle")
-                                    .data(graph.nodes.filter(function (d) {return d.id in recentArtists || d.id in topArtists}))
-                                    .enter().append("circle")
-                                    .attr("r", 5)
-                                    .attr("fill", color)
-                                    .call(drag(simulation))
-                                    .on("mouseover", function (d) {
-                                        d3.selectAll("circle").attr("opacity", 0.2);
-                                        d3.select(this).attr("opacity", 1.0);
-                                        console.log(d.name)
-                                    })
-                                    .on("mouseout", function (d) {
-                                        d3.selectAll("circle").attr("opacity", 1.0);
-                                        // update_graph(curr_buckets);
-                                    })
-                                    .on("click", function (d) {
-                                        console.log(recent_artists[d.id].related)
-                                        console.log(recent_artists)
-                                        update_graph(curr_buckets, recent_artists[d.id].related); //gives id of node?
-                                    });
-
-                                function ticked() {
-                                    link
-                                        .attr("x1", d => d.source.x)
-                                        .attr("y1", d => d.source.y)
-                                        .attr("x2", d => d.target.x)
-                                        .attr("y2", d => d.target.y);
-
-                                    node
-                                        .attr("cx", d => d.x)
-                                        .attr("cy", d => d.y);
-                                }
-
-                                // tick_out_scope = ticked;
-
-                                function dragsubject() {
-                                    return simulation.find(d3.event.x, d3.event.y);
-                                }
-
-                                // setTimeout(function () {
-                                //     var temp_links = all_links.slice(Math.round(all_links.length / 2));
-                                //     simulation.force("link").links(temp_links);
-                                //     link.data(temp_links);
-                                //     simulation.alphaTarget(0.3).restart();
-                                // }, 5000);  // removes half the links after 5 seconds and reworks forces
-
-
-                                var recents = data.recents.sort(function (a, b) {
-                                    return Date.parse("1970-01-01" + a.time.slice(a.time.indexOf('T'))) - Date.parse("1970-01-01" + b.time.slice(b.time.indexOf('T')));
+                            node = svg.append("g")
+                                .attr("stroke", "#fff")
+                                .attr("stroke-width", 1.5)
+                                .selectAll("circle")
+                                .data(artistsGraph.nodes.filter(function (d) {
+                                    return d.id in recentArtists || d.id in topArtists
+                                }))
+                                .enter().append("circle")
+                                .attr("r", 5)
+                                .attr("fill", color)
+                                .call(drag(simulation))
+                                .on("mouseover", function (d) {
+                                    d3.selectAll("circle").attr("opacity", 0.2);
+                                    d3.select(this).attr("opacity", 1.0);
+                                    div.style("opacity", 0.9).style("height", "14px");
+                                    div.html(d.name)
+                                        .style("left", (d3.event.pageX + 15) + "px")
+                                        .style("top", (d3.event.pageY - 28) + "px")
+                                        .style("width", d.name.length * 7 + "px");
+                                })
+                                .on("mouseout", function (d) {
+                                    d3.selectAll("circle").attr("opacity", 1.0);
+                                    div.style("opacity", 0);
+                                    update_graph(currBuckets);
+                                })
+                                .on("click", function (d) {
+                                    div.style("opacity", 0);
+                                    update_graph(currBuckets, d.id); //gives id of node?
                                 });
-                                stored_data = recents;
-                                buckets = [];
-                                var last_index = 0;
-                                var next_index = 0;
-                                var i;
-                                for (i = Date.parse("1970-01-01T00:00:00.000Z");
-                                     i <= Date.parse("1970-01-02T00:00:00.000Z");
-                                     i += Date.parse("1970-01-01T03:00:00.000Z")) {
-                                    next_index = recents.findIndex(function (elem, index) {
-                                        return this.next_index <= index && this.i <= Date.parse("1970-01-01" + elem.time.slice(elem.time.indexOf('T'))); // i <= Date.parse(elem);
-                                    }, {'i': i, 'next_index': next_index});
-                                    if (next_index === -1) next_index = recents.length;
-                                    buckets.push({
-                                        "time": (new Date(i + Date.parse("1970-01-01T05:00:00.000Z"))),
-                                        "arr": recents.slice(last_index, next_index)
-                                    });
-                                    last_index = next_index;
 
-                                    if (i === Date.parse("1970-01-02T00:00:00.000Z")) buckets[0].arr = buckets[buckets.length - 1].arr;
-                                }
+                            function ticked() {
+                                link
+                                    .attr("x1", d => d.source.x)
+                                    .attr("y1", d => d.source.y)
+                                    .attr("x2", d => d.target.x)
+                                    .attr("y2", d => d.target.y);
 
-                                curr_buckets = buckets;
+                                node
+                                    .attr("cx", d => d.x)
+                                    .attr("cy", d => d.y);
+                            }
 
-                                for (i = 0; i < buckets.length; i++) {
-                                    var mean = d3.mean(buckets[i].arr.map(e => parseFloat(tracks[e.artist].valence)));
-                                    if (!mean) mean = 0.5;
-                                    gradient_offsets.push({offset: (100 * i / (buckets.length - 1)) + "%", color: d3.interpolateRdBu(mean)}); //should be e.track... (and weird offsetting)
-                                }
+                            let last_index = 0;
+                            let next_index = 0;
+                            for (let i = Date.parse("1970-01-01T00:00:00.000Z");
+                                 i <= Date.parse("1970-01-02T00:00:00.000Z");
+                                 i += Date.parse("1970-01-01T03:00:00.000Z")) {
+                                next_index = recents.findIndex(function (elem, index) {
+                                    return this.next_index <= index && this.i <= Date.parse("1970-01-01" + elem.time.slice(elem.time.indexOf('T'))); // i <= Date.parse(elem);
+                                }, {'i': i, 'next_index': next_index});
+                                if (next_index === -1) next_index = recents.length;
+                                buckets.push({
+                                    "time": (new Date(i + Date.parse("1970-01-01T05:00:00.000Z"))),
+                                    "arr": recents.slice(last_index, next_index)
+                                });
+                                last_index = next_index;
 
-                                addGradient(gradient_offsets);
+                                if (i === Date.parse("1970-01-02T00:00:00.000Z")) buckets[0].arr = buckets[buckets.length - 1].arr;
+                            }
 
-                                // x.domain(d3.extent(data, function (d) {
-                                //     return d.date;
-                                // }));
-                                // y.domain([0, d3.max(data, function (d) {
-                                //     return d.price;
-                                // })]);
+                            currBuckets = buckets;
 
-                                x.domain([new Date("1970-01-01T00:00:00.000"),
-                                    new Date("1970-01-02T00:00:00.000")]);
-                                y.domain([0, d3.max(buckets, function (d) {
-                                    return d.arr.length;
-                                })]);
+                            for (let i = 0; i < buckets.length; i++) {
+                                let mean = d3.mean(buckets[i].arr.map(e => parseFloat(tracks[e.track].valence)));
+                                if (!mean) mean = 0.5;
+                                gradientOffsets.push({
+                                    offset: (100 * i / (buckets.length - 1)) + "%",
+                                    color: d3.interpolateRdBu(mean)
+                                });
+                            }
 
-                                x2.domain(x.domain());
-                                y2.domain(y.domain());
+                            addGradient(gradientOffsets);
 
-                                // focus.append("path")
-                                //     .datum(data)
-                                //     .attr("class", "area")
-                                //     .attr("d", area);
-                                //
-                                // focus.append("g")
-                                //     .attr("class", "axis axis--x")
-                                //     .attr("transform", "translate(0," + height + ")")
-                                //     .call(xAxis);
-                                //
-                                // focus.append("g")
-                                //     .attr("class", "axis axis--y")
-                                //     .call(yAxis);
+                            x.domain([new Date("1970-01-01T00:00:00.000"), new Date("1970-01-02T00:00:00.000")]);
+                            y.domain([0, d3.max(buckets, d => d.arr.length)]);
 
+                            context.append("path")
+                                .datum(buckets)
+                                .attr("class", "area")
+                                .attr("d", area);
 
-                                context.append("path")
-                                    .datum(buckets)
-                                    .attr("class", "area")
-                                    .attr("d", area2);
+                            context.append("g")
+                                .attr("class", "axis axis--x")
+                                .attr("transform", "translate(0," + height + ")")
+                                .call(xAxis);
 
-                                context.append("g")
-                                    .attr("class", "axis axis--x")
-                                    .attr("transform", "translate(0," + height2 + ")")
-                                    .call(xAxis2);
-
-                                context.append("g")
-                                    .attr("class", "brush")
-                                    .call(brush)
-                                    .call(brush.move, x.range());
-                            // });
-
+                            context.append("g")
+                                .attr("class", "brush")
+                                .call(brush)
+                                .call(brush.move, x.range());
 
                             function color(d) {  // coloring by genre
-                                // const scale = d3.scaleOrdinal(d3.schemeCategory10);
-                                // return d => scale(d.group);
-
-                                // if (!(d.id in recent_artists)) {
-                                //     return 'black'
-                                // }
-
-                                return 'black' }
-
-                                // if (recent_artists[d.id].genres.includes('rock')) {
-                                //     return 'red'
-                                // } else if (recent_artists[d.id].genres.includes('rap')) {
-                                //     return 'blue'
-                                // } else {
-                                //     return 'black'
-                                // }
-                            // }
+                                return 'black'
+                            }
 
 
-                            // d3.json("data.json", type, function (error, data) {
-                            //     if (error) throw error;
-                            //
-                            //     stored_data = data;
-                            //     var recents = data.recents;
-                            //     var buckets = [];
-                            //     var last_index = 0;
-                            //     var next_index;
-                            //     for (var i = Date.parse("1970-01-01T00:05:00.000Z");
-                            //          i <= Date.parse("1970-01-02T00:00:00.000Z");
-                            //          i += Date.parse("1970-01-01T00:05:00.000Z")) {
-                            //         next_index = recents.slice(last_index).findIndex(function (elem) {
-                            //             return this <= Date.parse("1970-01-01" + elem.slice(elem.indexOf('T'))); // i <= Date.parse(elem);
-                            //         }, i);
-                            //         if (next_index === -1) next_index = recents.length;
-                            //         buckets.push(next_index - last_index);
-                            //         last_index = next_index;
-                            //     }
-                            //
-                            //     // x.domain(d3.extent(data, function (d) {
-                            //     //     return d.date;
-                            //     // }));
-                            //     // y.domain([0, d3.max(data, function (d) {
-                            //     //     return d.price;
-                            //     // })]);
-                            //
-                            //     x.domain([new Date("1970-01-01T00:00:00.000"),
-                            //         new Date("1970-01-02T00:00:00.000")]);
-                            //     y.domain([0, d3.max(buckets)]);
-                            //
-                            //     x2.domain(x.domain());
-                            //     y2.domain(y.domain());
-                            //
-                            //     // focus.append("path")
-                            //     //     .datum(data)
-                            //     //     .attr("class", "area")
-                            //     //     .attr("d", area);
-                            //     //
-                            //     // focus.append("g")
-                            //     //     .attr("class", "axis axis--x")
-                            //     //     .attr("transform", "translate(0," + height + ")")
-                            //     //     .call(xAxis);
-                            //     //
-                            //     // focus.append("g")
-                            //     //     .attr("class", "axis axis--y")
-                            //     //     .call(yAxis);
-                            //
-                            //     context.append("path")
-                            //         .datum(data)
-                            //         .attr("class", "area")
-                            //         .attr("d", area2);
-                            //
-                            //     context.append("g")
-                            //         .attr("class", "axis axis--x")
-                            //         .attr("transform", "translate(0," + height2 + ")")
-                            //         .call(xAxis2);
-                            //
-                            //     context.append("g")
-                            //         .attr("class", "brush")
-                            //         .call(brush)
-                            //         .call(brush.move, x.range());
-                            //
-                            //     // svg.append("rect")
-                            //     //     .attr("class", "zoom")
-                            //     //     .attr("width", width)
-                            //     //     .attr("height", height)
-                            //     //     .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
-                            //     //     .call(zoom);
-                            // });
-
-                            function update_graph(data, related = []) {  //data is list of {time:bucket_timestamp, arr:[recents objects]} objects
-                                //maybe add in an extra parameter of related? related will already be in graph, but can allow it to
-                                // be filtered through, as it will never be otherwise
-                                console.log(related)
-
+                            function update_graph(data, relatedToId=null) {
                                 simulation.stop();
-                                //use graph, link, node
-                                //all_links = graph.links
+
                                 let all_recent_artists = [];
                                 for (let i = 0; i < data.length; i++) {
                                     all_recent_artists.push(...data[i].arr.map(function (d) {
                                         return d.artist;
                                     }));
                                 }
-                                //add in top artists to all_recent_artists
-                                //filter
-                                const new_links = graph.links.filter(function (d) {
-                                    return (all_recent_artists.includes(d.source.id) || related.includes(d.source.id))
-                                        && (all_recent_artists.includes(d.target.id) || related.includes(d.target.id))
+
+                                const new_links = artistsGraph.links.filter(function (d) {
+                                    return all_recent_artists.includes(d.source.id) && all_recent_artists.includes(d.target.id)
                                 });
-                                const new_nodes = graph.nodes.filter(function (d) {
+                                const new_nodes = artistsGraph.nodes.filter(function (d) {
                                     return all_recent_artists.includes(d.id);
                                 });
-                                const new_recents = graph.nodes.filter(function (d) {
-                                    return related.includes(d.id);
+                                const related_links = artistsGraph.links.filter(function (d) {
+                                    return (relatedToId === d.source.id || relatedToId === d.target.id) && !(new_links.includes(d));
+                                });
+                                let related_ids = [];
+                                for (let related_link of related_links) {
+                                    if (relatedToId === related_link.source.id) {
+                                        related_ids.push(related_link.target.id);
+                                    } else {
+                                        related_ids.push(related_link.source.id);
+                                    }
+                                }
+                                const related_nodes = artistsGraph.nodes.filter(function (d) {
+                                    return related_ids.includes(d.id) && !(new_nodes.includes(d));
                                 });
 
-                                // node = svg.select("g").selectAll("circle").data(new_nodes);
+                                if (!(relatedToId in relatedArtists)) {
+                                    new_nodes.push(...related_nodes);
+                                }
                                 node = node.data(new_nodes, function (d) {
                                     return d.id;
                                 });
                                 node.exit().remove();
-                                node = node.enter().append("circle").merge(node)
+                                const nodeEnter = node.enter().append("g");
+                                node = nodeEnter.append("circle").merge(node)
                                     .attr("r", 5)
                                     .attr("fill", color)
                                     .call(drag(simulation))
                                     .on("mouseover", function (elem) {
                                         d3.selectAll("circle").attr("opacity", 0.2);
                                         d3.select(this).attr("opacity", 1.0);
+                                        div.style("opacity", 0.9).style("height", "14px");
+                                        div.html(elem.name)
+                                            .style("left", (d3.event.pageX + 15) + "px")
+                                            .style("top", (d3.event.pageY - 28) + "px")
+                                            .style("width", elem.name.length * 7 + "px");
                                     })
                                     .on("mouseout", function (d) {
                                         d3.selectAll("circle").attr("opacity", 1.0);
+                                        div.style("opacity", 0);
+                                    })
+                                    .on("click", function (d) {
+                                        div.style("opacity", 0);
+                                        update_graph(currBuckets, d.id);
                                     });
 
-                                //Something like below could add text boxes on click
-                                //reference http://bl.ocks.org/ChrisJamesC/4474971
-                                // new_nodes.push(...new_recents);  //may just be able to do this all at once, because we only call this with recents and same nodes as before or without recents
-                                // node = node.data(new_nodes, function (d) {
-                                //     return d.id;
-                                // });
-                                // node = node.enter().append("text").merge(node)
-                                //     .text("hello")
-                                //     .attr("font-family", "sans-serif")
-                                //     .attr("font-size", "20px")
-                                //     .attr("fill", "red")
-                                //     .call(drag(simulation));
-
-                                // link = svg.select("g").selectAll("line").data(new_links);
+                                if (!(relatedToId in relatedArtists)) {
+                                    new_links.push(...related_links);
+                                }
                                 link = link.data(new_links, function (d) {
                                     return d.source.id + d.target.id;
                                 });
@@ -597,32 +447,10 @@
                             }
 
                             function brushed() {
-                                if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
-                                const s = d3.event.selection || x2.range();
-                                x.domain(s.map(x2.invert, x2));  //gives DateTime range that we want
-                                curr_buckets = buckets.filter(point => s.map(x2.invert, x2)[0] <= point.time && point.time <= s.map(x2.invert, x2)[1]);
-                                // focus.select(".area").attr("d", area);
-                                // focus.select(".axis--x").call(xAxis);
-                                svg.select(".zoom").call(zoom.transform, d3.zoomIdentity
-                                    .scale(width / (s[1] - s[0]))
-                                    .translate(-s[0], 0));
-
-                                update_graph(curr_buckets);
-                            }
-
-                            function zoomed() {
-                                if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") return; // ignore zoom-by-brush
-                                var t = d3.event.transform;
-                                x.domain(t.rescaleX(x2).domain());
-                                // focus.select(".area").attr("d", area);
-                                // focus.select(".axis--x").call(xAxis);
-                                context.select(".brush").call(brush.move, x.range().map(t.invertX, t));
-                            }
-
-                            function type(d) {
-                                d.date = parseDate(d.date);
-                                d.price = +d.price;
-                                return d;
+                                const s = d3.event.selection || x.range();
+                                x.domain(s.map(x.invert, x));  //gives DateTime range that we want
+                                currBuckets = buckets.filter(point => s.map(x.invert, x)[0] <= point.time && point.time <= s.map(x.invert, x)[1]);
+                                update_graph(currBuckets);
                             }
 
                             function addGradient(gradientList) {

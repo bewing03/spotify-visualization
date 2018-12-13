@@ -13,6 +13,7 @@ var cors = require('cors');
 var querystring = require('querystring');
 var cookieParser = require('cookie-parser');
 var fs = require('fs');
+var queue = require('d3-queue');
 
 
 var client_id = ''; // Your client id
@@ -182,6 +183,8 @@ app.get('/data', function (req, res) {
     var recentArtists = {};   // fields: name:str, genres:[str]
     var relatedArtists = {};  // fields: name:str, genres:[str]
 
+    let extraInfo = {};
+
     /*
     for each requested top_artist:
         artists_graph.nodes.push({id, name})
@@ -196,7 +199,7 @@ app.get('/data', function (req, res) {
                 setTimeout(() => requestTopArtists(options), 1000 * parseInt(response.headers['retry-after']));
             } else if (response.statusCode === 200) {
                 for (var artistObject of body.items) {
-                    if (!({id: artistObject.id, name: artistObject.name} in artistsGraph)) {
+                    if (!artistsGraph.nodes.map(e => e.id).includes(artistObject.id)) {
                         artistsGraph.nodes.push({id: artistObject.id, name: artistObject.name});
                     }
                     topArtists[artistObject.id] = {name: artistObject.name, genres: artistObject.genres};
@@ -224,18 +227,19 @@ app.get('/data', function (req, res) {
         for track in tracks:
             tracks[track.id] = {track.name, valence: feature.valence}
     */
-    function requestHelper(ids, helperType) {
-        helperOptions.url = "https://api.spotify.com/v1/"
+    function requestHelper(ids, helperType, next) {
+        helperOptions.url = "https://api.spotify.com/v1/";
         helperOptions.qs = {ids: ids.toString()};
         helperOptions.url += helperType;
         request.get(helperOptions, function (error, response, body) {
             if (error) {
                 console.log(error);
-                requestHelper(ids, helperType);
+                requestHelper(ids, helperType, next);
             } else if (response.statusCode === 429) {
-                setTimeout(() => requestHelper(ids, helperType), 1000 * parseInt(response.headers['retry-after']))
+                setTimeout(() => requestHelper(ids, helperType, next), 1000 * parseInt(response.headers['retry-after']))
             } else {
-                return body.helperType;
+                extraInfo[helperType] = body[Object.keys(body)[0]];
+                next(extraInfo);
             }
         });
     }
@@ -248,32 +252,34 @@ app.get('/data', function (req, res) {
             } else if (response.statusCode === 429) {
                 setTimeout(() => requestRecents(options), 1000 * parseInt(response.headers['retry-after']));
             } else if (response.statusCode === 200) {
-                var artistsInfo = requestHelper(body.items.map(e => e.track.artists[0].id), 'artists');
-                var features = requestHelper(body.items.map(e => e.track.id), 'audio-features');
+                requestHelper(body.items.map(e => e.track.artists[0].id), 'artists', extraInfo =>
+                    requestHelper(body.items.map(e => e.track.id), 'audio-features', extraInfo => {
+                        for (var i = 0; i < body.items.length; i++) {
+                            var currItem = body.items[i];
+                            recents.push({
+                                time: currItem.played_at,
+                                artist: currItem.track.artists[0].id,
+                                track: currItem.track.id
+                            });
+                            recentArtists[currItem.track.artists[0].id] = {name: currItem.track.artists[0].name, genres: extraInfo['artists'][i].genres};
 
-                for (var i = 0; i < body.items.length; i++) {
-                    var currItem = body.items[i];
-                    recents.push({
-                        time: currItem.played_at,
-                        artist: currItem.track.artists[0].id,
-                        track: currItem.track.id
-                    });
-                    recentArtists[currItem.track.artists[0].id] = {name: currItem.track.artists[0].name};  //, genres: artistsInfo[i].genres};
-                    if (!({id: currItem.track.artists[0].id, name: currItem.track.artists[0].name} in artistsGraph)) {
-                        artistsGraph.nodes.push({
-                            id: currItem.track.artists[0].id,
-                            name: currItem.track.artists[0].name
-                        });
-                    }
-                    tracks[currItem.track.id] = {name: currItem.track.name};  //, valence: features[i].valence}
-                }
+                            if (!artistsGraph.nodes.map(e => e.id).includes(currItem.track.artists[0].id)) {
+                                artistsGraph.nodes.push({
+                                    id: currItem.track.artists[0].id,
+                                    name: currItem.track.artists[0].name
+                                });
+                            }
+                            tracks[currItem.track.id] = {name: currItem.track.name, valence: extraInfo['audio-features'][i].valence};
+                        }
 
-                if (iterations < 10 && body.next.cursors !== undefined) {
-                    options.qs = {limit: 50, before: body.next.cursors.before};
-                    requestRecents(options, iterations + 1);
-                } else {  // move on
-                    requestAllRelatedArtists();
-                }
+                        if (iterations < 10 && body.next.cursors !== undefined) {
+                            options.qs = {limit: 50, before: body.next.cursors.before};
+                            requestRecents(options, iterations + 1);
+                        } else {  // move on
+                            requestAllRelatedArtists();
+                        }
+                    })
+                );
             } else {
                 requestRecents(options);
             }
