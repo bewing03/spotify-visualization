@@ -195,10 +195,11 @@
                                 .force("y", d3.forceY())
                                 .force("center", d3.forceCenter(width / 2, height / 2));
 
-                            var x = d3.scaleTime().domain([new Date("Fri Jan 01 1970 0:00:00"), new Date("Fri Jan 02 1970 0:00:00")]).range([0, width]),
+                            var x = d3.scaleTime().range([0, width]),
+                                x2 = d3.scaleTime().range([0, width]),
                                 y = d3.scaleLinear().range([height, 0]);
 
-                            var xAxis = d3.axisBottom(x);
+                            var xAxis2 = d3.axisBottom(x2);
 
                             var brush = d3.brushX()
                                 .extent([[0, 0], [width, height]])
@@ -207,7 +208,7 @@
                             var area = d3.area()
                                 .curve(d3.curveMonotoneX)
                                 .x(function (d) {
-                                    return x(d.time);
+                                    return x2(d.time);
                                 })
                                 .y0(height)
                                 .y1(function (d) {
@@ -347,7 +348,8 @@
 
                             addGradient(gradientOffsets);
 
-                            x.domain([new Date("1970-01-01T00:00:00.000"), new Date("1970-01-02T00:00:00.000")]);
+                            x.domain([new Date("Fri Jan 01 1970 0:00:00"), new Date("Fri Jan 02 1970 0:00:00")]);
+                            x2.domain(x.domain());
                             y.domain([0, d3.max(buckets, d => d.arr.length)]);
 
                             context.append("path")
@@ -358,7 +360,7 @@
                             context.append("g")
                                 .attr("class", "axis axis--x")
                                 .attr("transform", "translate(0," + height + ")")
-                                .call(xAxis);
+                                .call(xAxis2);
 
                             context.append("g")
                                 .attr("class", "brush")
@@ -370,7 +372,7 @@
                             }
 
 
-                            function update_graph(data, relatedToId=null) {
+                            function update_graph(data, relatedToId = null) {
                                 simulation.stop();
 
                                 let all_recent_artists = [];
@@ -408,7 +410,7 @@
                                     return d.id;
                                 });
                                 node.exit().remove();
-                                const nodeEnter = node.enter().append("g");
+                                const nodeEnter = node.enter();//.append("g");
                                 node = nodeEnter.append("circle").merge(node)
                                     .attr("r", 5)
                                     .attr("fill", color)
@@ -447,9 +449,9 @@
                             }
 
                             function brushed() {
-                                const s = d3.event.selection || x.range();
-                                x.domain(s.map(x.invert, x));  //gives DateTime range that we want
-                                currBuckets = buckets.filter(point => s.map(x.invert, x)[0] <= point.time && point.time <= s.map(x.invert, x)[1]);
+                                const s = d3.event.selection || x2.range();
+                                x.domain(s.map(x2.invert, x2));  //gives DateTime range that we want
+                                currBuckets = buckets.filter(point => s.map(x2.invert, x2)[0] <= point.time && point.time <= s.map(x2.invert, x2)[1]);
                                 update_graph(currBuckets);
                             }
 

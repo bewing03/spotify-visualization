@@ -305,28 +305,28 @@ app.get('/data', function (req, res) {
             return _union;
         }
 
-        requestRelated(Array.from(union(Object.keys(recentArtists), Object.keys(topArtists))), 0, artistsGraph);
+        requestRelated(Array.from(union(Object.keys(recentArtists), Object.keys(topArtists))), 0);
     }
 
-    function requestRelated(allArtistIds, iteration, artistsGraphC) {
+    function requestRelated(allArtistIds, iteration) {
         relatedOptions.url = 'https://api.spotify.com/v1/artists/' + allArtistIds[iteration] + '/related-artists';
         request.get(relatedOptions, function (error, response, body) {
             if (error) {
                 console.log(error);
-                requestRelated(allArtistIds, iteration, artistsGraphC);
+                requestRelated(allArtistIds, iteration, artistsGraph);
             } else if (response.statusCode === 429) {
-                setTimeout(() => requestRelated(allArtistIds, iteration, artistsGraphC), 1000 * parseInt(response.headers['retry-after']));
+                setTimeout(() => requestRelated(allArtistIds, iteration, artistsGraph), 1000 * parseInt(response.headers['retry-after']));
             } else if (response.statusCode === 200) {
                 for (var item of body.artists) {
                     if (!(item.id in topArtists || item.id in recentArtists)) {
                         relatedArtists[item.id] = {name: item.name, genres: item.genres};
-                        artistsGraphC.nodes.push({id: item.id, name: item.name});
+                        artistsGraph.nodes.push({id: item.id, name: item.name});
                     }
-                    if (!(artistsGraphC.links.includes({
+                    if (!(artistsGraph.links.includes({
                         source: item.id,
                         target: allArtistIds[iteration]
                     }))) {  // should never include the opposite
-                        artistsGraphC.links.push({source: allArtistIds[iteration], target: item.id});
+                        artistsGraph.links.push({source: allArtistIds[iteration], target: item.id});
                     }
                 }
 
@@ -334,14 +334,14 @@ app.get('/data', function (req, res) {
                     res.send(
                         {
                             recents: recents,
-                            artistsGraph: artistsGraphC,
+                            artistsGraph: artistsGraph,
                             tracks: tracks,
                             topArtists: topArtists,
                             recentArtists: recentArtists,
                             relatedArtists: relatedArtists
                         });
                 } else {
-                    requestRelated(allArtistIds, iteration + 1, artistsGraphC);
+                    requestRelated(allArtistIds, iteration + 1, artistsGraph);
                 }
             } else if (response.statusCode === 401) {
                 var authOptions = {
@@ -358,7 +358,7 @@ app.get('/data', function (req, res) {
                     if (!error && response.statusCode === 200) {
                         relatedOptions.headers = {'Authorization': 'Bearer ' + body.access_token};
                         access_token = body.access_token;
-                        requestRelated(allArtistIds, iteration, artistsGraphC);
+                        requestRelated(allArtistIds, iteration, artistsGraph);
                     }
                 });
 
