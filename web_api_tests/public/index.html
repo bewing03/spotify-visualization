@@ -8,6 +8,10 @@
             display: none;
         }
 
+        body {
+          background-color: #F0F8FF;
+        }
+
         .text-overflow {
             overflow: hidden;
             text-overflow: ellipsis;
@@ -40,6 +44,29 @@
             pointer-events: none;
         }
 
+        #login {
+          margin: 0 auto;
+          width: 30%;
+          height: 300px;
+          margin-top: 10%;
+          text-align: center;
+          border: 1px solid grey;
+          background-color: white;
+          box-shadow: 2px 2px 2px 2px grey;
+          border-radius: 5px;
+        }
+
+        #login > h1 {
+          padding-bottom: 15%;
+          padding-top: 5%;
+
+        }
+
+        #title {
+          text-align: center;
+          margin-bottom: 0;
+        }
+
     </style>
 </head>
 
@@ -47,9 +74,10 @@
 <div class="container-fluid" id="login-container">
     <div id="login">
         <h1>Music Taste Explorer</h1>
-        <a href="/login" class="btn btn-primary">Log in with Spotify</a>
+        <a href="/login" class="btn btn-primary btn-lg">Log in with Spotify</a>
     </div>
     <div id="loggedin">
+      <h1 id="title">Related Artists</h1>
     </div>
 </div>
 
@@ -59,6 +87,7 @@
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
 <script>
+
     (function () {
 
         /**
@@ -81,14 +110,14 @@
             refresh_token = params.refresh_token,
             error = params.error;
 
+
+
         // let recents, artistsGraph, allLinks, tracks, topArtists, recentArtists, relatedArtists;
 
         if (error) {
             alert('There was an error during the authentication');
         } else {
             if (access_token) {
-                // render oauth info
-
                 $.ajax({
                     url: 'https://api.spotify.com/v1/me',
                     headers: {
@@ -142,17 +171,17 @@
                             };
 
                             $('#login').hide();
-                            $('#user-profile').hide();
-                            $('#oauth').hide();
-                            $('#obtain-new-token').hide();
                             $('#loggedin').show();
+
+
+
 
                             var div = d3.select("#loggedin").append("div")
                                 .attr("class", "tooltip")
                                 .style("opacity", 0);
 
                             var docWidth = window.innerWidth,
-                                docHeight = window.innerHeight;
+                                docHeight = window.innerHeight - 200;
 
                             var svg = d3.select("#loggedin").append("svg").attr("width", docWidth).attr("height", docHeight),
                                 margin = {top: 30, right: 40, bottom: 30, left: 40},
@@ -170,12 +199,12 @@
                                 .style("font-size", "10pt")
                                 .text("Number of songs listened to");
 
-                            svg.append("text")
-                                .attr("y", margin.top / 1.5)
-                                .attr("x", margin.left + (width / 2))
-                                .style("text-anchor", "middle")
-                                .style("font-size", "15pt")
-                                .text("Related artists");
+                            // svg.append("text")
+                            //     .attr("y", margin.top / 1.5)
+                            //     .attr("x", margin.left + (width / 2))
+                            //     .style("text-anchor", "middle")
+                            //     .style("font-size", "15pt")
+                            //     .text("Related artists");
 
 
                             var simulation = d3.forceSimulation()
